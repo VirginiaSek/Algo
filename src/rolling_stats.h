@@ -1,6 +1,9 @@
 // compute statistics on a rolling basis.
 // Based on the Welford algorithm, see https : // www.johndcook.com/blog/standard_deviation/
 
+#ifndef ROLLING_STATS
+#define ROLLING_STATS
+
 typedef struct Stats
 {
     long m_n;
@@ -62,3 +65,5 @@ double rolling_stats_get_variance(Stats *stats, char sample)
     }
     return stats->m_newS / (double)n;
 }
+
+#endif
