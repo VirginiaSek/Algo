@@ -21,7 +21,7 @@ typedef struct Algo
 
 // all algorithms:
 const int algoN = 1; // change this to algo number!
-Algo algos[1];
+Algo algos[algoN];
 
 void createAlgos()
 {
