@@ -3,7 +3,40 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "./rolling_stats.h"
+
 #include "./dummy/dummyStepCounter.h"
+
+typedef struct Algo
+{
+    char *name;
+    Stats *stats;
+    void (*init)();
+    int (*step_count)(int delta_ms, int accx, int accy, int accz);
+    int counter;
+} Algo;
+
+////////////////////////////////////
+// START MODIFY HERE TO ADD NEW ALGO
+
+// all algorithms:
+const int algoN = 1; // change this to algo number!
+Algo algos[1];
+
+void createAlgos()
+{
+    // add the first algorithm
+    algos[0] = (Algo){
+        .name = "Dummy",
+        .stats = malloc(sizeof(Stats)),
+        .init = dummy_stepcount_init,
+        .step_count = dummy_stepcount,
+        .counter = 0,
+    };
+}
+
+// END MODIFY HERE TO ADD NEW ALGO
+////////////////////////////////////
 
 int main(int argc, char *argv[])
 {
@@ -27,6 +60,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // open the input directory
+    dir = opendir(argv[1]);
+    if (dir == NULL)
+    {
+        perror("Cannot open directory");
+        return 1;
+    }
+
     // open the reference csv file
     ref_fp = fopen(argv[2], "r");
     if (ref_fp == NULL)
@@ -43,13 +84,23 @@ int main(int argc, char *argv[])
         perror("Error creating results file\n");
         return 1;
     }
-    fprintf(out_fp, "FILENAME,REF,DUMMY\n");
 
-    dir = opendir(argv[1]);
-    if (dir == NULL)
+    // write header of output file
+    fprintf(out_fp, "FILENAME,");
+    for (int i = 0; i < algoN; i++)
     {
-        perror("Cannot open directory");
-        return 1;
+        fputs(algos[i].name, out_fp);
+        if (i < algoN - 1)
+            fprintf(out_fp, ",");
+    }
+    fprintf(out_fp, "\n");
+
+    createAlgos();
+
+    // init all stats
+    for (int i = 0; i < algoN; i++)
+    {
+        rolling_stats_reset(algos[i].stats);
     }
 
     // read each file
@@ -113,8 +164,11 @@ int main(int argc, char *argv[])
         }
 
         // initialise the algorithms
-        dummy_stepcount_init();
-        int dummySC = 0;
+        for (int i = 0; i < algoN; i++)
+        {
+            algos[i].counter = 0;
+            algos[i].init();
+        }
 
         // counter of the line number
         unsigned int lineN = 0;
@@ -155,7 +209,10 @@ int main(int argc, char *argv[])
                     delta_ms = ms - previous_ms;
 
                 // call all algorithms here:
-                dummySC = dummy_stepcount(delta_ms, accx, accy, accz);
+                for (int i = 0; i < algoN; i++)
+                {
+                    algos[i].counter = algos[i].step_count(delta_ms, accx, accy, accz);
+                }
 
                 previous_ms = ms;
             }
@@ -163,15 +220,36 @@ int main(int argc, char *argv[])
         fclose(accel_fp);
 
         // Write the results
+        fprintf(out_fp, "%s,%d,", entry->d_name, ref_imu);
+        for (int i = 0; i < algoN; i++)
+        {
+            fprintf(out_fp, "%d", algos[i].counter);
+
+            if (i < algoN - 1)
+                fprintf(out_fp, ",");
+        }
+        fprintf(out_fp, "\n");
+
         char out_line[1024];
         // concatenate filename and step counts
-        snprintf(out_line, sizeof(out_line), "%s,%d,%d\n", entry->d_name, ref_imu, dummySC);
 
         fputs(out_line, out_fp);
+
+        // add error to statistics
+        for (int i = 0; i < algoN; i++)
+        {
+            rolling_stats_addValue((double)algos[i].counter - (double)ref_imu, algos[i].stats);
+        }
     }
 
     closedir(dir);
 
     fclose(out_fp);
+
+    // print the stats
+    for (int i = 0; i < algoN; i++)
+    {
+        printf("%s Mean: %.1f Var: %.1f\n", algos[i].name, rolling_stats_get_mean(algos[i].stats), rolling_stats_get_variance(algos[i].stats, 0));
+    }
     return 0;
 }
