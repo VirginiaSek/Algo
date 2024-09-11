@@ -40,26 +40,14 @@ void createAlgos()
 
 int main(int argc, char *argv[])
 {
-
-    DIR *dir;
-    struct dirent *entry;
-    // input acceleration file
-    FILE *accel_fp;
-    char line[1024];
-
-    // input reference file
-    FILE *ref_fp;
-    char ref_line[1024];
-
-    // output file
-    FILE *out_fp;
-
     if (argc < 4)
     {
         printf("Usage: %s <directory> <reference> <results>\n", argv[0]);
         return 1;
     }
 
+    DIR *dir;
+    struct dirent *entry;
     // open the input directory
     dir = opendir(argv[1]);
     if (dir == NULL)
@@ -68,6 +56,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // input reference file
+    FILE *ref_fp;
+    char ref_line[1024];
     // open the reference csv file
     ref_fp = fopen(argv[2], "r");
     if (ref_fp == NULL)
@@ -77,6 +68,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // output file
+    FILE *out_fp;
     // Create output file
     out_fp = fopen(argv[3], "w");
     if (out_fp == NULL)
@@ -85,23 +78,27 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    createAlgos();
+
     // write header of output file
     fprintf(out_fp, "FILENAME,");
     for (int i = 0; i < algoN; i++)
     {
-        fputs(algos[i].name, out_fp);
+        fprintf(out_fp, "%s", algos[i].name);
         if (i < algoN - 1)
             fprintf(out_fp, ",");
     }
     fprintf(out_fp, "\n");
-
-    createAlgos();
 
     // init all stats
     for (int i = 0; i < algoN; i++)
     {
         rolling_stats_reset(algos[i].stats);
     }
+
+    // input acceleration file
+    FILE *accel_fp;
+    char line[1024];
 
     // read each file
     while ((entry = readdir(dir)) != NULL)
@@ -229,11 +226,6 @@ int main(int argc, char *argv[])
                 fprintf(out_fp, ",");
         }
         fprintf(out_fp, "\n");
-
-        char out_line[1024];
-        // concatenate filename and step counts
-
-        fputs(out_line, out_fp);
 
         // add error to statistics
         for (int i = 0; i < algoN; i++)
