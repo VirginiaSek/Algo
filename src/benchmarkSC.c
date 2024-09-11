@@ -6,6 +6,7 @@
 #include "./rolling_stats.h"
 
 #include "./dummy/dummyStepCounter.h"
+#include "./bangle_simple/bangle_simple.h"
 
 typedef struct Algo
 {
@@ -20,17 +21,24 @@ typedef struct Algo
 // START MODIFY HERE TO ADD NEW ALGO
 
 // all algorithms:
-const int algoN = 1; // change this to algo number!
+const int algoN = 2; // change this to algo number!
 Algo algos[algoN];
 
 void createAlgos()
 {
-    // add the first algorithm
     algos[0] = (Algo){
         .name = "Dummy",
         .stats = malloc(sizeof(Stats)),
         .init = dummy_stepcount_init,
         .step_count = dummy_stepcount,
+        .counter = 0,
+    };
+
+    algos[1] = (Algo){
+        .name = "BGLSimple",
+        .stats = malloc(sizeof(Stats)),
+        .init = bangle_simple_init,
+        .step_count = bangle_simple_stepcount,
         .counter = 0,
     };
 }
