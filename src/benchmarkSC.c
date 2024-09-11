@@ -141,6 +141,12 @@ int main(int argc, char *argv[])
                     continue;
                 }
 
+                if (lineN < 100 && ms > 10000)
+                {
+                    // discard initial values that belong to previous tests
+                    continue;
+                }
+
                 // Process the extracted integer values
                 // printf("Values: %d, %d, %d, %d\n", ms, accx, accy, accy);
 
