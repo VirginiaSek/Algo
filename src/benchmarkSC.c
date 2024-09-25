@@ -18,7 +18,7 @@ typedef struct Algo
     Stats *stats;
     void (*init)();
     steps_t (*step_count)(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
-    int counter;
+    steps_t counter;
 } Algo;
 
 ////////////////////////////////////
