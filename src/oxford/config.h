@@ -1,7 +1,4 @@
 #include <inttypes.h>
-
-// choose sqrt instead of math for a non-float dependent implementation
-// #include "sqrt.h"
 #include <math.h>
 
 // magnitude of acceleration
