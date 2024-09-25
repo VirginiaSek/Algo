@@ -4,8 +4,9 @@
  * ----------------------------------------------------------------------------
  */
 #include <stdint.h>
+#include "../types.h"
 
-long dummy_samples_counter = 0;
+accel_big_t dummy_samples_counter = 0;
 const float steps_per_sec = 1.5;
 
 /// Initialise step counting
@@ -15,7 +16,7 @@ void dummy_stepcount_init()
 }
 
 // process sample
-int dummy_stepcount(int delta_ms, int accx, int accy, int accz)
+steps_t dummy_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
     // keeps track of how many samples have been taken -> we can derive time passed
     dummy_samples_counter++;

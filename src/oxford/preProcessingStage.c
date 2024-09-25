@@ -1,18 +1,18 @@
 /*
 The MIT License (MIT)
- 
+
 Copyright (c) 2020 Anna Brondin and Marcus Nordström
- 
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
- 
+
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
- 
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,34 +24,32 @@ SOFTWARE.
 #include "preProcessingStage.h"
 #include "config.h"
 
- 
 #ifdef DUMP_FILE
 #include <stdio.h>
 static FILE
     *magnitudeFile;
 static FILE *interpolatedFile;
 #endif
- 
+
 static ring_buffer_t *inBuff;
 static ring_buffer_t *outBuff;
 static void (*nextStage)(void);
-static uint8_t samplingPeriod = 80;    //in ms, this can be smaller than the actual sampling frequency, but it will result in more computations
-static uint16_t timeScalingFactor = 1; //use this for adjusting time to ms, in case the clock has higher precision
-static sc_time_t lastSampleTime = -1;
- 
+static uint8_t samplingPeriod = 80;    // in ms, this can be smaller than the actual sampling frequency, but it will result in more computations
+static uint16_t timeScalingFactor = 1; // use this for adjusting time to ms, in case the clock has higher precision
+static time_delta_ms_t lastSampleTime = -1;
+
 void initPreProcessStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (*pNextStage)(void))
 {
     inBuff = pInBuff;
     outBuff = pOutBuff;
     nextStage = pNextStage;
-    
- 
+
 #ifdef DUMP_FILE
     magnitudeFile = fopen(DUMP_MAGNITUDE_FILE_NAME, "w+");
     interpolatedFile = fopen(DUMP_INTERPOLATED_FILE_NAME, "w+");
 #endif
 }
- 
+
 static data_point_t linearInterpolate(data_point_t dp1, data_point_t dp2, int64_t interpTime)
 {
     magnitude_t mag = (dp1.magnitude + ((dp2.magnitude - dp1.magnitude) / (dp2.time - dp1.time)) * (interpTime - dp1.time));
@@ -60,13 +58,13 @@ static data_point_t linearInterpolate(data_point_t dp1, data_point_t dp2, int64_
     interp.magnitude = mag;
     return interp;
 }
- 
+
 static void outPutDataPoint(data_point_t dp)
 {
     lastSampleTime = dp.time;
     ring_buffer_queue(outBuff, dp);
     (*nextStage)();
- 
+
 #ifdef DUMP_FILE
     if (interpolatedFile)
     {
@@ -76,24 +74,24 @@ static void outPutDataPoint(data_point_t dp)
     }
 #endif
 }
- 
+
 // Variabile di stato per tracciare il tempo cumulativo
-static sc_time_t cumulative_time = 0;
- 
-void preProcessSample(sc_time_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
+static time_delta_ms_t cumulative_time = 0;
+
+void preProcessSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
-    
+
     // Aggiornamento del tempo cumulativo
     cumulative_time += delta_ms;
- 
+
     // Adattamento del tempo in base al fattore di scala
-    sc_time_t time = cumulative_time / timeScalingFactor;
- 
+    time_delta_ms_t time = cumulative_time / timeScalingFactor;
+
     magnitude_t magnitude = (magnitude_t)sqrt((accumulator_t)(accx * accx + accy * accy + accz * accz));
     data_point_t dataPoint;
     dataPoint.time = time;
     dataPoint.magnitude = magnitude;
- 
+
 #ifdef DUMP_FILE
     if (magnitudeFile)
     {
@@ -101,7 +99,7 @@ void preProcessSample(sc_time_t delta_ms, accel_t accx, accel_t accy, accel_t ac
             puts("error writing file");
     }
 #endif
- 
+
 #ifdef SKIP_INTERPOLATION
     outPutDataPoint(dataPoint);
 #else
@@ -115,7 +113,7 @@ void preProcessSample(sc_time_t delta_ms, accel_t accx, accel_t accy, accel_t ac
         ring_buffer_peek(inBuff, &dp2, 1);
         if (lastSampleTime == -1)
             lastSampleTime = dp1.time;
- 
+
         if (dp2.time - lastSampleTime == samplingPeriod)
         {
             // nessuna interpolazione necessaria!
@@ -123,12 +121,12 @@ void preProcessSample(sc_time_t delta_ms, accel_t accx, accel_t accy, accel_t ac
         }
         else if (dp2.time - lastSampleTime > samplingPeriod)
         {
-            int8_t numberOfPoints = 1 + ((((dp2.time - lastSampleTime)) - 1) / samplingPeriod); //numero di punti da generare, arrotondato per eccesso
- 
+            int8_t numberOfPoints = 1 + ((((dp2.time - lastSampleTime)) - 1) / samplingPeriod); // numero di punti da generare, arrotondato per eccesso
+
             for (int8_t i = 1; i < numberOfPoints; i++)
             {
                 sc_time_t interpTime = lastSampleTime + samplingPeriod;
- 
+
                 if (dp1.time <= interpTime && interpTime <= dp2.time)
                 {
                     data_point_t interpolated = linearInterpolate(dp1, dp2, interpTime);
@@ -142,12 +140,11 @@ void preProcessSample(sc_time_t delta_ms, accel_t accx, accel_t accy, accel_t ac
     }
 #endif
 }
- 
- 
+
 void resetPreProcess(void)
 {
     lastSampleTime = -1;
- 
+
 #ifdef DUMP_FILE
     if (magnitudeFile)
     {

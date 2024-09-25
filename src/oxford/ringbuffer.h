@@ -1,4 +1,4 @@
-/* 
+/*
 The MIT License (MIT)
 
 Copyright (c) 2014 Anders Kalør
@@ -24,6 +24,7 @@ SOFTWARE.
 */
 
 #include "config.h"
+#include "../types.h"
 
 /**
  * @file
@@ -34,20 +35,20 @@ SOFTWARE.
 #define RINGBUFFER_H
 /**
  * A custom datastructure for the algorithm
-*/
+ */
 typedef struct data_point_t data_point_t;
 
 struct data_point_t
 {
   magnitude_t magnitude;
-  sc_time_t time;
+  time_delta_ms_t time;
 };
 /**
  * The size of a ring buffer.
  * Due to the design only <tt> RING_BUFFER_SIZE-1 </tt> items
  * can be contained in the buffer.
  * The buffer size must be a power of two.
-*/
+ */
 #define RING_BUFFER_SIZE 16
 
 #if (RING_BUFFER_SIZE & (RING_BUFFER_SIZE - 1)) != 0

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "./types.h"
+
 #include "./rolling_stats.h"
 
 #include "./dummy/dummyStepCounter.h"
@@ -15,7 +17,7 @@ typedef struct Algo
     char *name;
     Stats *stats;
     void (*init)();
-    int (*step_count)(int delta_ms, int accx, int accy, int accz);
+    steps_t (*step_count)(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
     int counter;
 } Algo;
 
@@ -37,7 +39,7 @@ void createAlgos()
     };
 
     algos[1] = (Algo){
-        .name = "BGLSimple",
+        .name = "BangleSimple",
         .stats = malloc(sizeof(Stats)),
         .init = bangle_simple_init,
         .step_count = bangle_simple_stepcount,
@@ -267,7 +269,7 @@ int main(int argc, char *argv[])
     // print the stats
     for (int i = 0; i < algoN; i++)
     {
-        printf("%s Mean: %.1f Var: %.1f\n", algos[i].name, rolling_stats_get_mean(algos[i].stats), rolling_stats_get_variance(algos[i].stats, 0));
+        printf("%s Mean: %.1f Std: %.1f\n", algos[i].name, rolling_stats_get_mean(algos[i].stats), rolling_stats_get_standard_deviation(algos[i].stats, 0));
     }
     return 0;
 }

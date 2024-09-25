@@ -1,4 +1,4 @@
-/* 
+/*
 The MIT License (MIT)
 
 Copyright (c) 2020 Anna Brondin and Marcus Nordström
@@ -27,7 +27,7 @@ SOFTWARE.
 #include "ringbuffer.h"
 
 void initPreProcessStage(ring_buffer_t *inBuff, ring_buffer_t *outBuff, void (*pNextStage)(void));
-void preProcessSample(sc_time_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
+void preProcessSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
 void resetPreProcess(void);
 
 #endif

@@ -1,4 +1,4 @@
-/* 
+/*
 The MIT License (MIT)
 
 Copyright (c) 2020 Anna Brondin and Marcus Nordström
@@ -25,6 +25,7 @@ SOFTWARE.
 #include "detectionStage.h"
 #include "postProcessingStage.h"
 #include "config.h"
+#include "../types.h"
 
 #ifdef DUMP_FILE
 #include <stdio.h>
@@ -39,7 +40,7 @@ static void (*nextStage)(void);
 
 static magnitude_t mean = 0;
 static accumulator_t std = 0;
-static sc_time_t count = 0;
+static steps_t count = 0;
 static int16_t threshold_int = DETECTION_TRHE_WHOLE;
 static int16_t threshold_frac = DETECTION_TRHE_PART;
 

@@ -12,7 +12,7 @@ void oxford_stepcount_init()
 }
 
 // process sample
-int oxford_stepcount_totalsteps(int delta_ms, int accx, int accy, int accz)
+steps_t oxford_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
     return oxford_stepcount(delta_ms, accx, accy, accz);
 }

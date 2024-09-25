@@ -13,7 +13,7 @@ void espruino_stepcount_init()
 }
 
 // process sample
-int espruino_stepcount(int delta_ms, int accx, int accy, int accz)
+steps_t espruino_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
 
     int accMagSquared = accx * accx + accy * accy + accz * accz;

@@ -77,7 +77,7 @@ void oxford_init()
     // oxford_resetSteps();
 }
 
-void oxford_processSample(int delta_ms, int accx, int accy, int accz)
+void oxford_processSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
     preProcessSample(delta_ms, accx, accy, accz);
 }

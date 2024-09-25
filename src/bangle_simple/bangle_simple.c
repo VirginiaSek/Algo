@@ -10,14 +10,15 @@
  * ----------------------------------------------------------------------------
  */
 #include <stdbool.h>
+#include "../types.h"
 
 static bool bangle_simple_StepWasLow;
 
 /// How low must acceleration magnitude squared get before we consider the next rise a step?
-static int bangle_simple_ThresholdLow = (8192 - 80) * (8192 - 80);
+static accel_big_t bangle_simple_ThresholdLow = (8192 - 80) * (8192 - 80);
 /// How high must acceleration magnitude squared get before we consider it a step?
-static int bangle_simple_ThresholdHigh = (8192 + 80) * (8192 + 80);
-static int bangle_simple_StepCount = 0;
+static accel_big_t bangle_simple_ThresholdHigh = (8192 + 80) * (8192 + 80);
+static steps_t bangle_simple_StepCount = 0;
 
 /// Initialise step counting
 void bangle_simple_init()
@@ -30,10 +31,10 @@ void bangle_simple_init()
  *
  * Returns the number of steps counted for this accel interval
  */
-int bangle_simple_stepcount(int delta_ms, int accx, int accy, int accz)
+steps_t bangle_simple_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
 
-    int accMagSquared = accx * accx + accy * accy + accz * accz;
+    accel_big_t accMagSquared = accx * accx + accy * accy + accz * accz;
 
     if (accMagSquared < bangle_simple_ThresholdLow)
         bangle_simple_StepWasLow = true;

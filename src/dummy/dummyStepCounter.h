@@ -11,6 +11,8 @@
 #ifndef DUMMY_STEP_COUNTER
 #define DUMMY_STEP_COUNTER
 
+#include "../types.h"
+
 /**
  * Initalise and reset the step counter
  */
@@ -26,6 +28,6 @@ void dummy_stepcount_init();
  *
  * returns: the number of steps counted so far.
  */
-int dummy_stepcount(int delta_ms, int accx, int accy, int accz);
+steps_t dummy_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
 
 #endif

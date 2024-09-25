@@ -25,6 +25,7 @@ SOFTWARE.
 #ifndef STEP_COUNTING_ALGO_H
 #define STEP_COUNTING_ALGO_H
 #include <stdint.h>
+#include "../types.h"
 #include "config.h"
 
 /**
@@ -39,7 +40,7 @@ void oxford_init(void);
     @param y, the y axis
     @param z, the z axis
 */
-void oxford_processSample(sc_time_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
+void oxford_processSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
 
 /**
     Resets the number of walked steps
