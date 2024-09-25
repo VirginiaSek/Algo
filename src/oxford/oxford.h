@@ -1,3 +1,6 @@
+/**
+ * Wrapper of the Oxford step counter.
+ */
 #ifndef OXFORD
 #define OXFORD
 

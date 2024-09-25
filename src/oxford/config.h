@@ -25,9 +25,6 @@ typedef uint64_t accumulator_t;
 // 3 steps /s is a reasonable maximum
 #define TIME_THRE 300
 
-// skip interpolation
-#define SKIP_INTERPOLATION
-
 // skip filtering step
 #define SKIP_FILTER
 

@@ -100,45 +100,7 @@ void preProcessSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, acce
     }
 #endif
 
-#ifdef SKIP_INTERPOLATION
     outPutDataPoint(dataPoint);
-#else
-    ring_buffer_queue(inBuff, dataPoint);
-    if (ring_buffer_num_items(inBuff) >= 2)
-    {
-        data_point_t dp1;
-        data_point_t dp2;
-        // prendere gli ultimi 2 elementi
-        ring_buffer_peek(inBuff, &dp1, 0);
-        ring_buffer_peek(inBuff, &dp2, 1);
-        if (lastSampleTime == -1)
-            lastSampleTime = dp1.time;
-
-        if (dp2.time - lastSampleTime == samplingPeriod)
-        {
-            // nessuna interpolazione necessaria!
-            outPutDataPoint(dp2);
-        }
-        else if (dp2.time - lastSampleTime > samplingPeriod)
-        {
-            int8_t numberOfPoints = 1 + ((((dp2.time - lastSampleTime)) - 1) / samplingPeriod); // numero di punti da generare, arrotondato per eccesso
-
-            for (int8_t i = 1; i < numberOfPoints; i++)
-            {
-                sc_time_t interpTime = lastSampleTime + samplingPeriod;
-
-                if (dp1.time <= interpTime && interpTime <= dp2.time)
-                {
-                    data_point_t interpolated = linearInterpolate(dp1, dp2, interpTime);
-                    outPutDataPoint(interpolated);
-                }
-            }
-        }
-        // rimuovere l'elemento più vecchio nella coda
-        data_point_t dataPoint;
-        ring_buffer_dequeue(inBuff, &dataPoint);
-    }
-#endif
 }
 
 void resetPreProcess(void)
