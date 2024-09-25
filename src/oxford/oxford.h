@@ -1,9 +1,9 @@
 #ifndef OXFORD
 #define OXFORD
 
-#include "./StepCountingAlgo.h"
+#include "./oxford_step_counter.h"
 
-/// Initialise step counting
+// Initialise step counting
 void oxford_stepcount_init()
 {
     oxford_init();

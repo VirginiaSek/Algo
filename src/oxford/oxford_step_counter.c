@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include <stddef.h>
-#include "StepCountingAlgo.h"
+#include "oxford_step_counter.h"
 #include "ringbuffer.h"
 #include "preProcessingStage.h"
 #include "motionDetectStage.h"
