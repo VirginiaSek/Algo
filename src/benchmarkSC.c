@@ -8,6 +8,7 @@
 #include "./dummy/dummyStepCounter.h"
 #include "./bangle_simple/bangle_simple.h"
 #include "./espruino/espruino.h"
+#include "./oxford/oxford.h"
 
 typedef struct Algo
 {
@@ -22,7 +23,7 @@ typedef struct Algo
 // START MODIFY HERE TO ADD NEW ALGO
 
 // all algorithms:
-const int algoN = 3; // change this to algo number!
+const int algoN = 4; // change this to algo number!
 Algo algos[algoN];
 
 void createAlgos()
@@ -48,6 +49,14 @@ void createAlgos()
         .stats = malloc(sizeof(Stats)),
         .init = espruino_stepcount_init,
         .step_count = espruino_stepcount,
+        .counter = 0,
+    };
+
+    algos[3] = (Algo){
+        .name = "Oxford",
+        .stats = malloc(sizeof(Stats)),
+        .init = oxford_stepcount_init,
+        .step_count = oxford_stepcount_totalsteps,
         .counter = 0,
     };
 }

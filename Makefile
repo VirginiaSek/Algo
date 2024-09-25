@@ -1,3 +1,4 @@
+# good guide: https://www.lucavall.in/blog/crafting-clean-maintainable-understandable-makefile-for-c-project
 TARGET_EXEC ?= benchmarkSC
 
 BUILD_DIR ?= ./build
