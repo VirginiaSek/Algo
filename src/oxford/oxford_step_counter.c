@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include <stddef.h>
+#include <stdio.h>
+
 #include "oxford_step_counter.h"
 #include "ringbuffer.h"
 #include "preProcessingStage.h"
@@ -30,7 +32,7 @@ SOFTWARE.
 #include "scoringStage.h"
 #include "detectionStage.h"
 #include "postProcessingStage.h"
-#include <stdio.h>
+
 // General data
 // static steps_t oxford_stepcount;
 static steps_t oxford_StepCount;
@@ -77,11 +79,6 @@ void oxford_init()
     // oxford_resetSteps();
 }
 
-void oxford_processSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
-{
-    preProcessSample(delta_ms, accx, accy, accz);
-}
-
 void oxford_resetSteps(void)
 {
     oxford_StepCount = 0;
@@ -102,9 +99,8 @@ void oxford_resetAlgo(void)
     ring_buffer_init(&peakBuf);
 }
 
-steps_t oxford_stepcount(int delta_ms, int accx, int accy, int accz)
+steps_t oxford_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
-
-    oxford_processSample(delta_ms, accx, accy, accz);
+    preProcessSample(delta_ms, accx, accy, accz);
     return oxford_StepCount;
 }

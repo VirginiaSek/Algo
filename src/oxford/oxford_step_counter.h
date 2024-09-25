@@ -34,15 +34,6 @@ SOFTWARE.
 void oxford_init(void);
 
 /**
-    This function takes the raw accelerometry data and computes the entire algorithm
-    @param time, the current time in ms
-    @param x, the x axis
-    @param y, the y axis
-    @param z, the z axis
-*/
-void oxford_processSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
-
-/**
     Resets the number of walked steps
 */
 void oxford_resetSteps(void);
@@ -53,9 +44,13 @@ void oxford_resetSteps(void);
 void oxford_resetAlgo(void);
 
 /**
-    Returns the number of walked steps
+    This function takes the raw accelerometry data and computes the entire algorithm
+    @param time, the current time in ms
+    @param x, the x axis
+    @param y, the y axis
+    @param z, the z axis
     @return steps walked
 */
-steps_t oxford_stepcount(int delta_ms, int accx, int accy, int accz);
+steps_t oxford_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
 
 #endif
