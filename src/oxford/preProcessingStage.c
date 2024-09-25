@@ -50,15 +50,6 @@ void initPreProcessStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (
 #endif
 }
 
-static data_point_t linearInterpolate(data_point_t dp1, data_point_t dp2, int64_t interpTime)
-{
-    magnitude_t mag = (dp1.magnitude + ((dp2.magnitude - dp1.magnitude) / (dp2.time - dp1.time)) * (interpTime - dp1.time));
-    data_point_t interp;
-    interp.time = interpTime;
-    interp.magnitude = mag;
-    return interp;
-}
-
 static void outPutDataPoint(data_point_t dp)
 {
     lastSampleTime = dp.time;
@@ -87,7 +78,7 @@ void preProcessSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, acce
     // Adattamento del tempo in base al fattore di scala
     time_delta_ms_t time = cumulative_time / timeScalingFactor;
 
-    magnitude_t magnitude = (magnitude_t)sqrt((accumulator_t)(accx * accx + accy * accy + accz * accz));
+    accel_big_t magnitude = (accel_big_t)sqrt((accel_big_t)(accx * accx + accy * accy + accz * accz));
     data_point_t dataPoint;
     dataPoint.time = time;
     dataPoint.magnitude = magnitude;

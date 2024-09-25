@@ -1,4 +1,4 @@
-/* 
+/*
 The MIT License (MIT)
 
 Copyright (c) 2020 Anna Brondin, Marcus Nordström and Dario Salvi
@@ -37,7 +37,7 @@ static ring_buffer_t *outBuff;
 static void (*nextStage)(void);
 
 static ring_buffer_size_t windowSize = WINDOW_SIZE;
-static ring_buffer_size_t midpoint = WINDOW_SIZE / 2; //half of size
+static ring_buffer_size_t midpoint = WINDOW_SIZE / 2; // half of size
 
 void initScoringStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (*pNextStage)(void))
 {
@@ -54,8 +54,8 @@ void scoringStage(void)
 {
     if (ring_buffer_num_items(inBuff) == windowSize)
     {
-        magnitude_t diffLeft = 0;
-        magnitude_t diffRight = 0;
+        accel_big_t diffLeft = 0;
+        accel_big_t diffRight = 0;
         data_point_t midpointData;
         ring_buffer_peek(inBuff, &midpointData, midpoint);
         data_point_t dataPoint;
@@ -69,7 +69,7 @@ void scoringStage(void)
             ring_buffer_peek(inBuff, &dataPoint, j);
             diffRight += midpointData.magnitude - dataPoint.magnitude;
         }
-        magnitude_t scorePeak = (diffLeft + diffRight) / (windowSize - 1);
+        accel_big_t scorePeak = (diffLeft + diffRight) / (windowSize - 1);
         data_point_t out;
         out.time = midpointData.time;
         out.magnitude = scorePeak;

@@ -1,4 +1,4 @@
-/* 
+/*
 The MIT License (MIT)
 
 Copyright (c) 2020 Anna Brondin, Marcus Nordström and Dario Salvi
@@ -56,7 +56,7 @@ fixed point precision: 32 bits
 
 */
 #define FILTER_TAP_NUM 7
-static magnitude_t filter_taps[FILTER_TAP_NUM] = {
+static accel_big_t filter_taps[FILTER_TAP_NUM] = {
     -2696,
     -3734,
     11354,
@@ -80,7 +80,7 @@ void filterStage(void)
 {
     if (ring_buffer_num_items(inBuff) == FILTER_TAP_NUM)
     {
-        accumulator_t sum = 0;
+        accel_big_t sum = 0;
         data_point_t dataPoint;
         data_point_t out;
 
