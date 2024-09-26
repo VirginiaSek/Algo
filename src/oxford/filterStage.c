@@ -38,11 +38,11 @@ static void (*nextStage)(void);
 
 /*
 FIR filter designed with
-http://t-filter.appspot.com
+ http://t-filter.appspot.com
 
 sampling frequency: 12.5 Hz
 
-fixed point precision: 32 bits
+fixed point precision: 16 bits
 
 * 0 Hz - 3 Hz
   gain = 1
@@ -51,19 +51,20 @@ fixed point precision: 32 bits
 
 * 4 Hz - 6.25 Hz
   gain = 0
-  desired attenuation = -10 dB
+  desired attenuation = -30 dB
   actual attenuation = n/a
 
 */
-#define FILTER_TAP_NUM 7
+#define FILTER_TAP_NUM 8
 static accel_big_t filter_taps[FILTER_TAP_NUM] = {
-    -2696,
-    -3734,
-    11354,
-    17457,
-    11354,
-    -3734,
-    -2696};
+    -3451,
+    -4928,
+    3799,
+    15850,
+    15850,
+    3799,
+    -4928,
+    -3451};
 
 void initFilterStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (*pNextStage)(void))
 {
@@ -91,6 +92,7 @@ void filterStage(void)
                 out.time = dataPoint.time;
             sum += dataPoint.magnitude * filter_taps[i];
         }
+        // 16 is the "Fixed point precision of taps"
         out.magnitude = sum >> 16;
 
         ring_buffer_dequeue(inBuff, &dataPoint);

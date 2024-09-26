@@ -16,7 +16,7 @@
 #define TIME_THRE 300
 
 // skip filtering step
-#define SKIP_FILTER
+// #define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
 // #define DUMP_FILE
