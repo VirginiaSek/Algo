@@ -109,14 +109,15 @@ int main(int argc, char *argv[])
     createAlgos();
 
     // write header of output file
-    fprintf(out_fp, "FILENAME,");
+    fprintf(out_fp, "FILENAME,Reference,"); 
     for (int i = 0; i < algoN; i++)
     {
         fprintf(out_fp, "%s", algos[i].name);
         if (i < algoN - 1)
-            fprintf(out_fp, ",");
+        fprintf(out_fp, ",");
     }
     fprintf(out_fp, "\n");
+
 
     // init all stats
     for (int i = 0; i < algoN; i++)
