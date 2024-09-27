@@ -11,6 +11,7 @@
  */
 #include <stdbool.h>
 #include "../types.h"
+#include "bangle_simple.h"
 
 static bool bangle_simple_StepWasLow;
 

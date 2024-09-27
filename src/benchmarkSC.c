@@ -11,6 +11,7 @@
 #include "./bangle_simple/bangle_simple.h"
 #include "./espruino/espruino.h"
 #include "./oxford/oxford.h"
+#include "./panTompkins/pt.h"
 
 typedef struct Algo
 {
@@ -25,8 +26,8 @@ typedef struct Algo
 // START MODIFY HERE TO ADD NEW ALGO
 
 // all algorithms:
-const int algoN = 4; // change this to algo number!
-Algo algos[algoN];
+const int algoN = 5; // change this to algo number!
+Algo algos[5];
 
 void createAlgos()
 {
@@ -59,6 +60,13 @@ void createAlgos()
         .stats = malloc(sizeof(Stats)),
         .init = oxford_stepcount_init,
         .step_count = oxford_stepcount_totalsteps,
+        .counter = 0,
+    };
+    algos[4] = (Algo){
+        .name = "PanTompkins",
+        .stats = malloc(sizeof(Stats)),
+        .init = pantompkins_init,        // Use the initialization wrapper
+        .step_count = pantompkins_totalsteps,
         .counter = 0,
     };
 }
