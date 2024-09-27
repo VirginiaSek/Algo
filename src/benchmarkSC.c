@@ -3,26 +3,31 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "./types.h"
+
 #include "./rolling_stats.h"
 
 #include "./dummy/dummyStepCounter.h"
 #include "./bangle_simple/bangle_simple.h"
+#include "./espruino/espruino.h"
+#include "./oxford/oxford.h"
+#include "./panTompkins/pt.h"
 
 typedef struct Algo
 {
     char *name;
     Stats *stats;
     void (*init)();
-    int (*step_count)(int delta_ms, int accx, int accy, int accz);
-    int counter;
+    steps_t (*step_count)(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
+    steps_t counter;
 } Algo;
 
 ////////////////////////////////////
 // START MODIFY HERE TO ADD NEW ALGO
 
 // all algorithms:
-const int algoN = 2; // change this to algo number!
-Algo algos[algoN];
+const int algoN = 5; // change this to algo number!
+Algo algos[5];
 
 void createAlgos()
 {
@@ -35,10 +40,33 @@ void createAlgos()
     };
 
     algos[1] = (Algo){
-        .name = "BGLSimple",
+        .name = "BangleSimple",
         .stats = malloc(sizeof(Stats)),
         .init = bangle_simple_init,
         .step_count = bangle_simple_stepcount,
+        .counter = 0,
+    };
+
+    algos[2] = (Algo){
+        .name = "Espruino",
+        .stats = malloc(sizeof(Stats)),
+        .init = espruino_stepcount_init,
+        .step_count = espruino_stepcount,
+        .counter = 0,
+    };
+
+    algos[3] = (Algo){
+        .name = "Oxford",
+        .stats = malloc(sizeof(Stats)),
+        .init = oxford_stepcount_init,
+        .step_count = oxford_stepcount_totalsteps,
+        .counter = 0,
+    };
+    algos[4] = (Algo){
+        .name = "PanTompkins",
+        .stats = malloc(sizeof(Stats)),
+        .init = pantompkins_init,        // Use the initialization wrapper
+        .step_count = pantompkins_totalsteps,
         .counter = 0,
     };
 }
@@ -89,14 +117,15 @@ int main(int argc, char *argv[])
     createAlgos();
 
     // write header of output file
-    fprintf(out_fp, "FILENAME,");
+    fprintf(out_fp, "FILENAME,Reference,"); 
     for (int i = 0; i < algoN; i++)
     {
         fprintf(out_fp, "%s", algos[i].name);
         if (i < algoN - 1)
-            fprintf(out_fp, ",");
+        fprintf(out_fp, ",");
     }
     fprintf(out_fp, "\n");
+
 
     // init all stats
     for (int i = 0; i < algoN; i++)
@@ -249,7 +278,7 @@ int main(int argc, char *argv[])
     // print the stats
     for (int i = 0; i < algoN; i++)
     {
-        printf("%s Mean: %.1f Var: %.1f\n", algos[i].name, rolling_stats_get_mean(algos[i].stats), rolling_stats_get_variance(algos[i].stats, 0));
+        printf("%s Mean: %.1f Std: %.1f\n", algos[i].name, rolling_stats_get_mean(algos[i].stats), rolling_stats_get_standard_deviation(algos[i].stats, 0));
     }
     return 0;
 }

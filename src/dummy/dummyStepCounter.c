@@ -4,6 +4,7 @@
  * ----------------------------------------------------------------------------
  */
 #include <stdint.h>
+#include "dummyStepCounter.h"
 
 long dummy_samples_counter = 0;
 const float steps_per_sec = 1.5;

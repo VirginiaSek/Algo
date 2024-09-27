@@ -4,6 +4,8 @@
 #ifndef ROLLING_STATS
 #define ROLLING_STATS
 
+#include <math.h>
+
 typedef struct Stats
 {
     long m_n;
@@ -64,6 +66,12 @@ double rolling_stats_get_variance(Stats *stats, char sample)
         n = stats->m_n;
     }
     return stats->m_newS / (double)n;
+}
+
+double rolling_stats_get_standard_deviation(Stats *stats, char sample)
+{
+    double variance = rolling_stats_get_variance(stats, sample);
+    return sqrt(variance);
 }
 
 #endif
