@@ -1,4 +1,4 @@
-/* 
+/*
 The MIT License (MIT)
 
 Copyright (c) 2020 Anna Brondin and Marcus Nordström and Dario Salvi
@@ -48,8 +48,8 @@ void motionDetectStage(void)
 {
     if (ring_buffer_num_items(inBuff) >= 15)
     {
-        magnitude_t min = maxof(magnitude_t);
-        magnitude_t max = 0;
+        accel_big_t min = maxof(accel_big_t);
+        accel_big_t max = 0;
         for (int i = 0; i < 12; i++)
         {
             data_point_t dp;

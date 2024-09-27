@@ -19,6 +19,6 @@ void bangle_simple_init();
  *
  * Returns the number of steps counted for this accel interval
  */
-steps_t bangle_simple_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
+int bangle_simple_stepcount(int delta_ms, int accx, int accy, int accz);
 
 #endif

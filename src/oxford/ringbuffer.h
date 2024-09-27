@@ -40,7 +40,7 @@ typedef struct data_point_t data_point_t;
 
 struct data_point_t
 {
-  magnitude_t magnitude;
+  accel_big_t magnitude;
   time_delta_ms_t time;
 };
 /**

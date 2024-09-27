@@ -38,8 +38,8 @@ static ring_buffer_t *inBuff;
 static ring_buffer_t *outBuff;
 static void (*nextStage)(void);
 
-static magnitude_t mean = 0;
-static accumulator_t std = 0;
+static accel_big_t mean = 0;
+static accel_big_t std = 0;
 static steps_t count = 0;
 static int16_t threshold_int = DETECTION_TRHE_WHOLE;
 static int16_t threshold_frac = DETECTION_TRHE_PART;
@@ -59,7 +59,7 @@ void detectionStage(void)
 {
     if (!ring_buffer_is_empty(inBuff))
     {
-        accumulator_t oMean = mean;
+        accel_big_t oMean = mean;
         data_point_t dataPoint;
         ring_buffer_dequeue(inBuff, &dataPoint);
         count++;
@@ -71,19 +71,20 @@ void detectionStage(void)
         else if (count == 2)
         {
             mean = (mean + dataPoint.magnitude) / 2;
-            std = sqrt(((dataPoint.magnitude - mean) * (dataPoint.magnitude - mean)) + ((oMean - mean) * (oMean - mean))) / 2;
+            std = (accel_big_t)sqrt(((dataPoint.magnitude - mean) * (dataPoint.magnitude - mean)) + ((oMean - mean) * (oMean - mean))) / 2;
         }
         else
         {
             mean = (dataPoint.magnitude + ((count - 1) * mean)) / count;
-            accumulator_t part1 = ((std * std) / (count - 1)) * (count - 2);
-            accumulator_t part2 = ((oMean - mean) * (oMean - mean));
-            accumulator_t part3 = ((dataPoint.magnitude - mean) * (dataPoint.magnitude - mean)) / count;
-            std = (accumulator_t)sqrt(part1 + part2 + part3);
+            accel_big_t part1 = ((std * std) / (count - 1)) * (count - 2);
+            accel_big_t part2 = ((oMean - mean) * (oMean - mean));
+            accel_big_t part3 = ((dataPoint.magnitude - mean) * (dataPoint.magnitude - mean)) / count;
+            std = (accel_big_t)sqrt(part1 + part2 + part3);
         }
         if (count > 15)
         {
-            if ((dataPoint.magnitude - mean) > (std * threshold_int + (std / threshold_frac)))
+            // TODO: investigate why I had to cast magnitude - mean to uint64 to make it work correctly
+            if ((uint64_t)(dataPoint.magnitude - mean) > (std * threshold_int + (std / threshold_frac)))
             {
                 // This is a peak
                 ring_buffer_queue(outBuff, dataPoint);

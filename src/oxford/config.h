@@ -1,16 +1,6 @@
 #include <inttypes.h>
 #include <math.h>
 
-// magnitude of acceleration
-// this should be 1 bit bigger than accel_t
-// example: if the accelerometer works at 12 bits, magnitude should be 13 bits, therefore choosing int16_t for both will do
-typedef int64_t magnitude_t;
-
-// accumulator of magnitude, should be bigger than magnitude
-// the size depends on the length of the filter in the filtering stage
-// example: accelerometer works at 12 bits, the filter has 8 taps -> accumulator should be at least 12 + 3 bits -> using int16_t will do
-typedef uint64_t accumulator_t;
-
 // difference between min and max acceleration to detect motion
 #define MOTION_THRESHOLD 1500
 
@@ -26,7 +16,7 @@ typedef uint64_t accumulator_t;
 #define TIME_THRE 300
 
 // skip filtering step
-#define SKIP_FILTER
+// #define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
 // #define DUMP_FILE
