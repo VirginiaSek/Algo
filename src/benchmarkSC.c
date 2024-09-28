@@ -12,7 +12,7 @@
 #include "./espruino/espruino.h"
 #include "./oxford/oxford.h"
 #include "./panTompkins/pt.h"
-
+#include "./autocorrelation/autocorrelation.h"
 typedef struct Algo
 {
     char *name;
@@ -26,8 +26,8 @@ typedef struct Algo
 // START MODIFY HERE TO ADD NEW ALGO
 
 // all algorithms:
-const int algoN = 5; // change this to algo number!
-Algo algos[5];
+const int algoN = 6; // change this to algo number!
+Algo algos[algoN];
 
 void createAlgos()
 {
@@ -67,6 +67,13 @@ void createAlgos()
         .stats = malloc(sizeof(Stats)),
         .init = pantompkins_init,        // Use the initialization wrapper
         .step_count = pantompkins_totalsteps,
+        .counter = 0,
+    };
+    algos[5] = (Algo){
+        .name = "Autocorrelation",
+        .stats = malloc(sizeof(Stats)),
+        .init = autocorrelation_stepcount_init,        // Use the initialization wrapper
+        .step_count = autocorrelation_stepcount_totalsteps,
         .counter = 0,
     };
 }
