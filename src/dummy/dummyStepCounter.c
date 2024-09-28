@@ -5,6 +5,7 @@
  */
 #include <stdint.h>
 #include "../types.h"
+#include "dummyStepCounter.h"
 
 accel_big_t dummy_samples_counter = 0;
 const float steps_per_sec = 1.5;
