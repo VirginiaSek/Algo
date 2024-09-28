@@ -5,7 +5,8 @@
 // this algorithm is a simple adaptation of the following paper:
 //"RecoFit - Using a Wearable Sensor to Find, Recognize, and Count Repetitive Exercises"
 
-#define NUM_AUTOCORR_LAGS 50                // number of lags to calculate for autocorrelation. 50 lags @20Hz corresponds to a step rate of 0.4Hz...its probably not physically possible to walk much slower than this
+#define NUM_AUTOCORR_LAGS 50 // number of lags to calculate for autocorrelation.
+// we need to cover at least 2 steps in order to have periodicity: 50 lags @12.5Hz corresponds to a step rate of 0.25Hz...its probably not physically possible to walk much slower than this
 #define DERIV_FILT_LEN 7                    // length of derivative filter
 #define LPF_FILT_LEN 9                      // length of FIR low pass filter
 #define AUTOCORR_DELTA_AMPLITUDE_THRESH 5e8 // this is the min delta between peak and trough of autocorrelation peak
