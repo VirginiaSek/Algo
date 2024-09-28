@@ -1,28 +1,31 @@
 #include "panTompkins.h"
 #include <stdio.h>
-#include <math.h>  // For sqrt()
+#include <math.h> // For sqrt()
 
-#define WINDOWSIZE 20    // Window size for the integrator (~150ms).
-#define FS 360           // Sampling frequency. Adjust based on your data.
-#define BUFFSIZE 600     // Buffer size. Must fit more than 1.66 times a step interval.
-#define DELAY 22         // Delay introduced by filters.
+#define WINDOWSIZE 20 // Window size for the integrator (~150ms).
+#define FS 360        // Sampling frequency. Adjust based on your data.
+#define BUFFSIZE 600  // Buffer size. Must fit more than 1.66 times a step interval.
+#define DELAY 22      // Delay introduced by filters.
 
 // Global variable to track steps
-int total_steps = 0;
-dataType threshold_i1 = 0.5;  // Threshold for step detection
+int pt_total_steps = 0;
+dataType threshold_i1 = 0.5; // Threshold for step detection
 
 /*
     Main loop for step detection based on modified Pan-Tompkins.
     This function now accepts accelerometer data directly.
 */
-void panTompkins(dataType accx, dataType accy, dataType accz) {
+void panTompkins(dataType accx, dataType accy, dataType accz)
+{
     static dataType signal[BUFFSIZE], dcblock[BUFFSIZE], lowpass[BUFFSIZE], highpass[BUFFSIZE], derivative[BUFFSIZE], squared[BUFFSIZE], integral[BUFFSIZE];
     static int sample = 0;
     int current;
 
     // Buffer shifting logic
-    if (sample >= BUFFSIZE) {
-        for (int i = 0; i < BUFFSIZE - 1; i++) {
+    if (sample >= BUFFSIZE)
+    {
+        for (int i = 0; i < BUFFSIZE - 1; i++)
+        {
             signal[i] = signal[i + 1];
             dcblock[i] = dcblock[i + 1];
             lowpass[i] = lowpass[i + 1];
@@ -32,7 +35,9 @@ void panTompkins(dataType accx, dataType accy, dataType accz) {
             integral[i] = integral[i + 1];
         }
         current = BUFFSIZE - 1;
-    } else {
+    }
+    else
+    {
         current = sample;
     }
 
@@ -40,9 +45,12 @@ void panTompkins(dataType accx, dataType accy, dataType accz) {
     signal[current] = sqrt(accx * accx + accy * accy + accz * accz);
 
     // DC Block filter (optional, remove if unnecessary)
-    if (current >= 1) {
+    if (current >= 1)
+    {
         dcblock[current] = signal[current] - signal[current - 1] + 0.995 * dcblock[current - 1];
-    } else {
+    }
+    else
+    {
         dcblock[current] = 0;
     }
 
@@ -76,7 +84,8 @@ void panTompkins(dataType accx, dataType accy, dataType accz) {
 
     // Moving-Window Integration
     integral[current] = 0;
-    for (int i = 0; i < WINDOWSIZE; i++) {
+    for (int i = 0; i < WINDOWSIZE; i++)
+    {
         if (current >= (dataType)i)
             integral[current] += squared[current - i];
         else
@@ -85,10 +94,10 @@ void panTompkins(dataType accx, dataType accy, dataType accz) {
     integral[current] /= (dataType)WINDOWSIZE;
 
     // Peak detection logic (step detection)
-    if (integral[current] >= threshold_i1) {
-        total_steps++;  // Increment step count
+    if (integral[current] >= threshold_i1)
+    {
+        pt_total_steps++; // Increment step count
     }
 
     sample++;
 }
-
