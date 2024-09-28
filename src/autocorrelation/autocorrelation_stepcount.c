@@ -1,6 +1,7 @@
 #include "autocorrelation_stepcount.h"
 #include "stdint.h"
 #include "stdio.h" //using this for printing debug outputs
+#include <math.h>
 
 // this algorithm is a simple adaptation of the following paper:
 //"RecoFit - Using a Wearable Sensor to Find, Recognize, and Count Repetitive Exercises"
@@ -243,7 +244,9 @@ uint16_t count_steps(int16_t *data)
     for (i = 0; i < NUM_TUPLES; i++)
     {
         temp_mag = (uint16_t)((uint16_t)data[i * 3 + 0] * (uint16_t)data[i * 3 + 0] + (uint16_t)data[i * 3 + 1] * (uint16_t)data[i * 3 + 1] + (uint16_t)data[i * 3 + 2] * (uint16_t)data[i * 3 + 2]);
-        mag_sqrt[i] = (uint8_t)SquareRoot(temp_mag);
+        // mag_sqrt[i] = (uint8_t)SquareRoot(temp_mag);
+        // use standard sqrt, can be changed to another version if needed
+        mag_sqrt[i] = (uint8_t)sqrt(temp_mag);
     }
 
     // apply low pass filter to mag_sqrt, result is stored in lpf
