@@ -1,10 +1,24 @@
 #include "autocorrelation_stepcount.h"
+#include "autocorrelation.h"
 #include "stdint.h"
 #include "stdio.h" //using this for printing debug outputs
 #include <math.h>
 
 // this algorithm is a simple adaptation of the following paper:
 //"RecoFit - Using a Wearable Sensor to Find, Recognize, and Count Repetitive Exercises"
+static float WINDOW_LENGTH = 0.0f;
+#define NUM_AUTOCORR_LAGS       50          //number of lags to calculate for autocorrelation. 50 lags @20Hz corresponds to a step rate of 0.4Hz...its probably not physically possible to walk much slower than this
+#define DERIV_FILT_LEN          7          //length of derivative filter
+#define LPF_FILT_LEN            9           //length of FIR low pass filter
+#define AUTOCORR_DELTA_AMPLITUDE_THRESH 5e8 //this is the min delta between peak and trough of autocorrelation peak
+#define AUTOCORR_MIN_HALF_LEN   3           //this is the min number of points the autocorrelation peak should be on either side of the peak
+
+static int8_t deriv_coeffs[DERIV_FILT_LEN]        = {-6,31,0,-31,6};            //coefficients of derivative filter from https://www.dsprelated.com/showarticle/814.php
+static int16_t lpf_coeffs[LPF_FILT_LEN]            = {-2696,-3734,11354,17457,11354,-3734,-2696}; //coefficients of FIR low pass filter generated in matlab using FDATOOL
+static uint8_t mag_sqrt[NUM_TUPLES]               = {0};                        //this holds the square root of magnitude data of X,Y,Z (so its length is NUM_SAMPLES/3)
+static int32_t lpf[NUM_TUPLES]                    = {0};                        //hold the low pass filtered signal
+static int64_t autocorr_buff[NUM_AUTOCORR_LAGS]   = {0};                        //holds the autocorrelation results
+static int64_t deriv[NUM_AUTOCORR_LAGS]           = {0};                        //holds derivative
 
 #define NUM_AUTOCORR_LAGS 50 // number of lags to calculate for autocorrelation.
 // we need to cover at least 2 steps in order to have periodicity: 50 lags @12.5Hz corresponds to a step rate of 0.25Hz...its probably not physically possible to walk much slower than this
@@ -30,22 +44,24 @@ static void get_autocorr_peak_stats(int64_t *autocorr_buff, uint8_t *neg_slope_c
 
 // fixed point square root estimation from http://stackoverflow.com/questions/1100090/looking-for-an-efficient-integer-square-root-algorithm-for-arm-thumb2
 /**
- * \brief    Fast Square root algorithm
- *
- * Fractional parts of the answer are discarded. That is:
- *      - SquareRoot(3) --> 1
- *      - SquareRoot(4) --> 2
- *      - SquareRoot(5) --> 2
- *      - SquareRoot(8) --> 2
- *      - SquareRoot(9) --> 3
- *
- * \param[in] a_nInput - unsigned integer for which to find the square root
- *
- * \return Integer square root of the input value.
- */
-static uint32_t SquareRoot(uint32_t a_nInput)
-{
-    uint32_t op = a_nInput;
+* \brief    Fast Square root algorithm
+*
+* Fractional parts of the answer are discarded. That is:
+*      - SquareRoot(3) --> 1
+*      - SquareRoot(4) --> 2
+*      - SquareRoot(5) --> 2
+*      - SquareRoot(8) --> 2
+*      - SquareRoot(9) --> 3
+*
+* \param[in] a_nInput - unsigned integer for which to find the square root
+*
+* \return Integer square root of the input value.
+*/
+
+
+
+static uint32_t SquareRoot(uint32_t a_nInput) {
+    uint32_t op  = a_nInput;
     uint32_t res = 0;
     uint32_t one = 1uL << 30; // The second-to-top bit is set: use 1u << 14 for uint16_t type; use 1uL<<30 for uint32_t type
 

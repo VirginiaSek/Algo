@@ -13,9 +13,8 @@
 #include "stdint.h"
  
 #define SAMPLING_RATE           12.5                    //20 hz sampling rate
-#define NUM_TUPLES              80                //80 sets of accelerometer readings (so in other words, 80*3 = 240 samples)
-#define WINDOW_LENGTH           NUM_TUPLES/SAMPLING_RATE //window length in seconds
- 
+// Definisci NUM_TUPLES come il numero di tuple contate
+
 uint16_t count_steps(int16_t *data);
  
 #endif

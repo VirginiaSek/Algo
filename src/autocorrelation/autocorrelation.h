@@ -1,12 +1,13 @@
+
 #ifndef AUTOCORRELATION
 #define AUTOCORRELATION
+
  
 #include "autocorrelation_stepcount.h"
 #include <stdlib.h> // per malloc e free
 #include "../types.h"
- 
+
 steps_t autocorrelation_steps_counter=0;
- 
 void autocorrelation_stepcount_init()
 {
     autocorrelation_steps_counter = 0;
@@ -38,7 +39,6 @@ void circular_buffer_add(CircularBuffer *buffer, accel_t accx, accel_t accy, acc
         buffer->count++; // Incrementa il conteggio se non si è raggiunta la dimensione massima
     }
 }
- 
 // Funzione wrapper
 steps_t autocorrelation_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz) {
     static CircularBuffer buffer; // Buffer circolare statico
@@ -65,4 +65,3 @@ steps_t autocorrelation_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t a
     return autocorrelation_steps_counter; // Restituisci il conteggio totale dei passi
 }
 #endif
- 
