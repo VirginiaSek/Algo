@@ -8,13 +8,17 @@
  * ----------------------------------------------------------------------------
  */
 
+
+
 #ifndef autocorrelation_stepcount_h
 #define autocorrelation_stepcount_h
 #include "stdint.h"
  
 #define SAMPLING_RATE           12.5                    //20 hz sampling rate
+#define NUM_TUPLES 80
 // Definisci NUM_TUPLES come il numero di tuple contate
-
+#define WINDOW_LENGTH           NUM_TUPLES/SAMPLING_RATE //window length in seconds
+ 
 uint16_t count_steps(int16_t *data);
  
 #endif
