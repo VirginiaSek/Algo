@@ -15,12 +15,12 @@ static FILE *derivativeFile;
 #define FIRST_AUTOCORR_PEAK_LAG 4 // corresponds to the first feasible autocorrelation lag -> at a max step rate of 3 steps /s (running) -> 333ms / sampling_period(ms) = 4 at 12.5 Hz
 
 #define DERIV_FILT_LEN 7                    // length of derivative filter
-#define LPF_FILT_LEN 9                      // length of FIR low pass filter
+#define LPF_FILT_LEN 15                      // length of FIR low pass filter
 #define AUTOCORR_DELTA_AMPLITUDE_THRESH 5e8 // this is the min delta between peak and trough of autocorrelation peak
 #define AUTOCORR_MIN_HALF_LEN 2             // this is the min number of points the autocorrelation peak should be on either side of the peak
 
 static int8_t deriv_coeffs[DERIV_FILT_LEN] = {-6, 31, 0, -31, 6};
-static int16_t lpf_coeffs[LPF_FILT_LEN] = {-2696, -3734, 11354, 17457, 11354, -3734, -2696};
+static int16_t lpf_coeffs[LPF_FILT_LEN] = {-342, 848, 2984, 1529, -3087, -1143, 10308, 17553, 10308, -1143, -3087, 1529, 2984, 848, -342};
 static int32_t lpf[NUM_TUPLES] = {0};                  // low pass filtered signal
 static int64_t autocorr_buff[NUM_AUTOCORR_LAGS] = {0}; // autocorrelation results
 static int64_t deriv[NUM_AUTOCORR_LAGS] = {0};         // derivative
@@ -80,35 +80,85 @@ static uint32_t SquareRoot(uint32_t a_nInput)
 }
 
 // Low pass filter function
-static void lowpassfilt(accel_big_t *mag_sqrt, int32_t *lpf)
-{
+
+typedef struct {
+    accel_big_t history[LPF_FILT_LEN];
+    int last_index;
+} LPFilter;
+
+void LPFilter_init(LPFilter* f) {
+    int i;
+    for(i = 0; i < LPF_FILT_LEN; ++i)
+        f->history[i] = 0;
+    f->last_index = 0;
+}
+
+void LPFilter_put(LPFilter* f, accel_big_t input) {
+    f->history[f->last_index++] = input;
+    if(f->last_index == LPF_FILT_LEN)
+        f->last_index = 0;
+}
+
+accel_big_t LPFilter_get(LPFilter* f) {
+    accel_big_t acc = 0;
+    int index = f->last_index, i;
+    for(i = 0; i < LPF_FILT_LEN; ++i) {
+        index = index != 0 ? index-1 : LPF_FILT_LEN-1;
+        acc += (accel_big_t)f->history[index] * lpf_coeffs[i];
+    }
+    return acc >> 16; // Normalization
+}
+static void lowpassfilt(accel_big_t *mag_sqrt, int32_t *lpf) {
+    LPFilter filter;
+    LPFilter_init(&filter); 
     uint16_t n;
-    uint8_t i;
-    int32_t temp_lpf;
-    for (n = 0; n < NUM_TUPLES; n++)
-    {
-        temp_lpf = 0;
-        for (i = 0; i < LPF_FILT_LEN; i++)
-        {
-            if (n - i >= 0)
-            {
-                temp_lpf += (int32_t)lpf_coeffs[i] * (int32_t)mag_sqrt[n - i];
-            }
-        }
-        lpf[n] = temp_lpf;
+    for (n = 0; n < NUM_TUPLES; n++) {
+        LPFilter_put(&filter, mag_sqrt[n]);
+        lpf[n] = LPFilter_get(&filter);
 
 #ifdef DUMP_FILE
-        if (filteredFile)
-        {
+        if (filteredFile) {
             fprintf(filteredFile, "%u, %d\n", n, lpf[n]);
         }
 #endif
     }
+
 #ifdef DUMP_FILE
     if (filteredFile)
         fflush(filteredFile);
 #endif
 }
+
+
+// static void lowpassfilt(accel_big_t *mag_sqrt, int32_t *lpf)
+// {
+//     uint16_t n;
+//     uint8_t i;
+//     int32_t temp_lpf;
+//     for (n = 0; n < NUM_TUPLES; n++)
+//     {
+//         temp_lpf = 0;
+//         for (i = 0; i < LPF_FILT_LEN; i++)
+//         {
+//             if (n - i >= 0)
+//             {
+//                 temp_lpf += (int32_t)lpf_coeffs[i] * (int32_t)mag_sqrt[n - i];
+//             }
+//         }
+//         lpf[n] = temp_lpf;
+
+// #ifdef DUMP_FILE
+//         if (filteredFile)
+//         {
+//             fprintf(filteredFile, "%u, %d\n", n, lpf[n]);
+//         }
+// #endif
+//     }
+// #ifdef DUMP_FILE
+//     if (filteredFile)
+//         fflush(filteredFile);
+// #endif
+// }
 
 // Remove mean from filtered data
 static void remove_mean(accel_big_t *lpf)
@@ -286,7 +336,7 @@ steps_t autcorr_count_steps(accel_big_t *mag_sqrt)
     init_dump_files();
 
     // Step 2: Apply low pass filter
-    // lowpassfilt(mag_sqrt, lpf);
+    //lowpassfilt(mag_sqrt, lpf);
 
     // Step 3: Remove the mean
     remove_mean(mag_sqrt);

@@ -19,7 +19,7 @@
 // #define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
-// #define DUMP_FILE
+//#define DUMP_FILE
 #define DUMP_MAGNITUDE_FILE_NAME "magnitude.csv"
 #define DUMP_INTERPOLATED_FILE_NAME "interpolated.csv"
 #define DUMP_FILTERED_FILE_NAME "filtered.csv"
