@@ -1,19 +1,13 @@
 #ifndef PT_H
 #define PT_H
 
-#include "panTompkins.h" // Include panTompkins.h per usare le sue funzioni
+#include "../types.h"  // Assicurati che il tipo `steps_t`, `time_delta_ms_t`, e `accel_t` siano definiti qui.
 
-// Funzione per inizializzare l'algoritmo Pan-Tompkins
-void pantompkins_init(void)
-{
-    pt_total_steps = 0; // Reimposta il contatore dei passi
-}
+// Dichiarazione della funzione di inizializzazione dell'algoritmo Pan-Tompkins
+void pantompkins_init();
 
-// Funzione per contare i passi usando l'algoritmo Pan-Tompkins
-steps_t pantompkins_totalsteps(time_delta_ms_t delta, accel_t x, accel_t y, accel_t z)
-{
-    panTompkins(x, y, z); // Richiama la funzione che processa i dati accelerometrici
-    return pt_total_steps;
-}
+// Dichiarazione della funzione per processare i dati accelerometrici e restituire il numero di passi
+steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
 
-#endif
+#endif  // PT_H
+
