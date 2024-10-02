@@ -54,7 +54,7 @@ static void close_dump_files()
 #endif
 }
 
-// Modified SquareRoot function remains unchanged
+// Modified SquareRoot function 
 static uint32_t SquareRoot(uint32_t a_nInput)
 {
     uint32_t op = a_nInput;
@@ -336,13 +336,13 @@ steps_t autcorr_count_steps(accel_big_t *mag_sqrt)
     init_dump_files();
 
     // Step 2: Apply low pass filter
-    //lowpassfilt(mag_sqrt, lpf);
+    lowpassfilt(mag_sqrt, lpf);
 
     // Step 3: Remove the mean
-    remove_mean(mag_sqrt);
+    remove_mean(lpf);
 
     // Step 4: Calculate autocorrelation
-    autocorr(mag_sqrt, autocorr_buff);
+    autocorr(lpf, autocorr_buff);
 
     // Step 5: Calculate derivative
     derivative(autocorr_buff, deriv);
