@@ -1,3 +1,10 @@
+/**
+ * Commonly used movement detection stage. Works by applying a moving average over the magnitude
+ * and then comapring the average with a threshold, determined experimentally.
+ */
+#ifndef DETECTION_H
+#define DETECTION_H
+
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -127,3 +134,5 @@ bool detect_movement(accel_big_t magnitude)
     else
         return false;
 }
+
+#endif
