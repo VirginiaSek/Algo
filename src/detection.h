@@ -20,47 +20,60 @@
  */
 static accel_big_t detection_stage_buffer[DETECTION_BUFFER_LEN];
 static float detect_mean = 0;
-int writeIndx = 0;
-int readIndx = 0;
+int detect_buffer_head = 0;
+int detect_buffer_tail = 0;
 
 static bool detection_buffer_is_full()
 {
-    return ((writeIndx + 1) % DETECTION_BUFFER_LEN == readIndx);
+    return ((detect_buffer_head + 1) % DETECTION_BUFFER_LEN == detect_buffer_tail);
 }
 
 static unsigned int detection_buffer_len()
 {
-    if (writeIndx == readIndx)
+    if (detect_buffer_head == detect_buffer_tail)
         return 0;
-    else if (writeIndx > readIndx)
-        return writeIndx - readIndx;
+    else if (detect_buffer_head > detect_buffer_tail)
+        return detect_buffer_head - detect_buffer_tail;
     else
-        return (DETECTION_BUFFER_LEN - readIndx) + writeIndx;
+        return (DETECTION_BUFFER_LEN - detect_buffer_tail) + detect_buffer_head;
 }
 
 static bool detection_buffer_put(accel_big_t item)
 {
-    if (detection_buffer_is_full())
+    int next;
+
+    next = detect_buffer_head + 1; // next is where head will point to after this write.
+    if (next >= DETECTION_BUFFER_LEN)
+        next = 0;
+
+    if (next == detect_buffer_tail) // if the head + 1 == tail, circular buffer is full
     {
-        // buffer is full, avoid overflow
-        return 0;
+        printf("ERR on put: buffer is full");
+        return -1;
     }
-    detection_stage_buffer[writeIndx] = item;
-    writeIndx = (writeIndx + 1) % DETECTION_BUFFER_LEN;
-    return 1;
+
+    detection_stage_buffer[detect_buffer_head] = item; // Load data and then move
+    detect_buffer_head = next;                         // head to next data offset.
+    return 0;                                          // return success to indicate successful push.
 }
 
 static bool detection_buffer_get(accel_big_t *value)
 {
-    if (readIndx == writeIndx)
+    int next;
+
+    if (detect_buffer_head == detect_buffer_tail) // if the head == tail, we don't have any data
     {
-        // buffer is empty
-        return 0;
+        printf("ERR on get: buffer empty");
+        return -1;
     }
 
-    *value = detection_stage_buffer[readIndx];
-    readIndx = (readIndx + 1) % DETECTION_BUFFER_LEN;
-    return 1;
+    next = detect_buffer_tail + 1; // next is where tail will point to after this read.
+    if (next >= DETECTION_BUFFER_LEN)
+        next = 0;
+
+    *value = detection_stage_buffer[detect_buffer_tail]; // Read data and then move
+    detect_buffer_tail = next;                           // tail to next offset.
+    return 0;                                            // return success to indicate successful push.
 }
 
 /**
@@ -68,8 +81,8 @@ static bool detection_buffer_get(accel_big_t *value)
  */
 void detection_stage_init()
 {
-    writeIndx = 0;
-    readIndx = 0;
+    detect_buffer_head = 0;
+    detect_buffer_tail = 0;
     detect_mean = 0;
     for (int i = 0; i < DETECTION_BUFFER_LEN; i++)
     {
@@ -89,7 +102,7 @@ bool detect_movement(accel_big_t magnitude)
     detection_buffer_put(magnitude);
 
     unsigned int len = detection_buffer_len();
-    printf("len %d\n", len);
+    printf("len (after put) %d\n", len);
 
     if (detection_buffer_len() < (DETECTION_BUFFER_LEN - 1))
     {
@@ -104,7 +117,7 @@ bool detect_movement(accel_big_t magnitude)
 
         printf("removed %d\n", magn_removed);
 
-        detect_mean += ((float)magnitude - (float)magn_removed) / (DETECTION_BUFFER_LEN - 1);
+        detect_mean += ((float)magnitude - (float)magn_removed) / (DETECTION_BUFFER_LEN - 2);
     }
 
     printf("moving avg %.2f\n", detect_mean);
