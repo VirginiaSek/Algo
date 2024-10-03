@@ -5,7 +5,6 @@
 #include "../types.h"
 
 #ifdef DUMP_FILE
-static FILE *magnitudeFile;
 static FILE *filteredFile;
 static FILE *removedMeanFile;
 static FILE *autocorrelationFile;
@@ -15,7 +14,7 @@ static FILE *derivativeFile;
 #define FIRST_AUTOCORR_PEAK_LAG 4 // corresponds to the first feasible autocorrelation lag -> at a max step rate of 3 steps /s (running) -> 333ms / sampling_period(ms) = 4 at 12.5 Hz
 
 #define DERIV_FILT_LEN 7                    // length of derivative filter
-#define LPF_FILT_LEN 15                      // length of FIR low pass filter
+#define LPF_FILT_LEN 15                     // length of FIR low pass filter
 #define AUTOCORR_DELTA_AMPLITUDE_THRESH 5e8 // this is the min delta between peak and trough of autocorrelation peak
 #define AUTOCORR_MIN_HALF_LEN 2             // this is the min number of points the autocorrelation peak should be on either side of the peak
 
@@ -29,7 +28,6 @@ static int64_t deriv[NUM_AUTOCORR_LAGS] = {0};         // derivative
 static void init_dump_files()
 {
 #ifdef DUMP_FILE
-    magnitudeFile = fopen(DUMP_MAGNITUDE_FILE_NAME, "w+");
     filteredFile = fopen(DUMP_FILTERED_FILE_NAME, "w+");
     removedMeanFile = fopen(DUMP_REMOVED_MEAN_FILE_NAME, "w+");
     autocorrelationFile = fopen(DUMP_AUTOCORRELATION_FILE_NAME, "w+");
@@ -41,8 +39,6 @@ static void init_dump_files()
 static void close_dump_files()
 {
 #ifdef DUMP_FILE
-    if (magnitudeFile)
-        fclose(magnitudeFile);
     if (filteredFile)
         fclose(filteredFile);
     if (removedMeanFile)
@@ -54,7 +50,7 @@ static void close_dump_files()
 #endif
 }
 
-// Modified SquareRoot function 
+// Modified SquareRoot function
 static uint32_t SquareRoot(uint32_t a_nInput)
 {
     uint32_t op = a_nInput;
@@ -81,43 +77,51 @@ static uint32_t SquareRoot(uint32_t a_nInput)
 
 // Low pass filter function
 
-typedef struct {
+typedef struct
+{
     accel_big_t history[LPF_FILT_LEN];
     int last_index;
 } LPFilter;
 
-void LPFilter_init(LPFilter* f) {
+void LPFilter_init(LPFilter *f)
+{
     int i;
-    for(i = 0; i < LPF_FILT_LEN; ++i)
+    for (i = 0; i < LPF_FILT_LEN; ++i)
         f->history[i] = 0;
     f->last_index = 0;
 }
 
-void LPFilter_put(LPFilter* f, accel_big_t input) {
+void LPFilter_put(LPFilter *f, accel_big_t input)
+{
     f->history[f->last_index++] = input;
-    if(f->last_index == LPF_FILT_LEN)
+    if (f->last_index == LPF_FILT_LEN)
         f->last_index = 0;
 }
 
-accel_big_t LPFilter_get(LPFilter* f) {
+accel_big_t LPFilter_get(LPFilter *f)
+{
     accel_big_t acc = 0;
     int index = f->last_index, i;
-    for(i = 0; i < LPF_FILT_LEN; ++i) {
-        index = index != 0 ? index-1 : LPF_FILT_LEN-1;
+    for (i = 0; i < LPF_FILT_LEN; ++i)
+    {
+        index = index != 0 ? index - 1 : LPF_FILT_LEN - 1;
         acc += (accel_big_t)f->history[index] * lpf_coeffs[i];
     }
     return acc >> 16; // Normalization
 }
-static void lowpassfilt(accel_big_t *mag_sqrt, int32_t *lpf) {
+static void lowpassfilt(accel_big_t *mag_sqrt, int32_t *lpf)
+{
     LPFilter filter;
-    LPFilter_init(&filter); 
+    LPFilter_init(&filter);
     uint16_t n;
-    for (n = 0; n < NUM_TUPLES; n++) {
+    for (n = 0; n < NUM_TUPLES; n++)
+    {
         LPFilter_put(&filter, mag_sqrt[n]);
         lpf[n] = LPFilter_get(&filter);
 
 #ifdef DUMP_FILE
-        if (filteredFile) {
+        if (filteredFile)
+        {
             fprintf(filteredFile, "%u, %d\n", n, lpf[n]);
         }
 #endif
@@ -128,7 +132,6 @@ static void lowpassfilt(accel_big_t *mag_sqrt, int32_t *lpf) {
         fflush(filteredFile);
 #endif
 }
-
 
 // static void lowpassfilt(accel_big_t *mag_sqrt, int32_t *lpf)
 // {

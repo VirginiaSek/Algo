@@ -13,8 +13,7 @@
 #include "stdint.h"
 #include "../types.h"
 
-#define DUMP_FILE
-#define DUMP_MAGNITUDE_FILE_NAME "magnitude.csv"
+// #define DUMP_FILE
 #define DUMP_FILTERED_FILE_NAME "filtered.csv"
 #define DUMP_REMOVED_MEAN_FILE_NAME "removed_mean.csv"
 #define DUMP_AUTOCORRELATION_FILE_NAME "autocorrelation.csv"
