@@ -109,7 +109,7 @@ bool detect_movement(accel_big_t magnitude)
     detection_buffer_put(magnitude);
 
     unsigned int len = detection_buffer_len();
-    printf("len (after put) %d\n", len);
+    // printf("len (after put) %d\n", len);
 
     if (detection_buffer_len() < (DETECTION_BUFFER_LEN - 1))
     {
@@ -122,12 +122,12 @@ bool detect_movement(accel_big_t magnitude)
         accel_big_t magn_removed = 0;
         detection_buffer_get(&magn_removed);
 
-        printf("removed %d\n", magn_removed);
+        // printf("removed %d\n", magn_removed);
 
         detect_mean += ((float)magnitude - (float)magn_removed) / (DETECTION_BUFFER_LEN - 2);
     }
 
-    printf("moving avg %.2f\n", detect_mean);
+    // printf("moving avg %.2f\n", detect_mean);
 
     if (detect_mean > DETECTION_THRESHOLD)
         return true;
