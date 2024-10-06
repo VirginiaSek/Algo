@@ -7,7 +7,7 @@
 #include <math.h>
 
 #include "../types.h"
-#include "../detection.h"
+#include "../movement_detection.h"
 #include "dummyStepCounter.h"
 
 long long dummy_time_passed = 0;
@@ -25,7 +25,7 @@ void dummy_stepcount_init()
 steps_t dummy_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
     uint16_t magn = sqrt(accx * accx + accy * accy + accz * accz);
-    bool ismoving = detect_movement(magn);
+    bool ismoving = detect_movement(delta_ms, magn);
 
     if (delta_ms > 0 && ismoving)
     {

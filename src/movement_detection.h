@@ -99,10 +99,11 @@ void detection_stage_init()
 
 /**
  * Detects movement in the signal
+ * delta_ms: time in ms since last sample
  * magnitude: acceleration magntiude
  * returns: 0 if no movement is detected, and 1 if there is movement*
  */
-bool detect_movement(accel_big_t magnitude)
+bool detect_movement(time_delta_ms_t delta_ms, accel_big_t magnitude)
 {
 
     // add to the buffer
