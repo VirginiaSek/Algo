@@ -65,14 +65,14 @@ void createAlgos()
     algos[4] = (Algo){
         .name = "PanTompkins",
         .stats = malloc(sizeof(Stats)),
-        .init = pantompkins_init,        // Use the initialization wrapper
+        .init = pantompkins_init, // Use the initialization wrapper
         .step_count = pantompkins_totalsteps,
         .counter = 0,
     };
     algos[5] = (Algo){
         .name = "Autocorrelation",
         .stats = malloc(sizeof(Stats)),
-        .init = autocorrelation_stepcount_init,        // Use the initialization wrapper
+        .init = autocorrelation_stepcount_init, // Use the initialization wrapper
         .step_count = autocorrelation_stepcount_totalsteps,
         .counter = 0,
     };
@@ -124,15 +124,14 @@ int main(int argc, char *argv[])
     createAlgos();
 
     // write header of output file
-    fprintf(out_fp, "FILENAME,Reference,"); 
+    fprintf(out_fp, "FILENAME,Reference,");
     for (int i = 0; i < algoN; i++)
     {
         fprintf(out_fp, "%s", algos[i].name);
         if (i < algoN - 1)
-        fprintf(out_fp, ",");
+            fprintf(out_fp, ",");
     }
     fprintf(out_fp, "\n");
-
 
     // init all stats
     for (int i = 0; i < algoN; i++)
@@ -274,7 +273,9 @@ int main(int argc, char *argv[])
         // add error to statistics
         for (int i = 0; i < algoN; i++)
         {
-            rolling_stats_addValue((double)algos[i].counter - (double)ref_imu, algos[i].stats);
+            double error = (double)algos[i].counter - (double)ref_imu;
+            double error_minute = error / ((double)previous_ms / (1000 * 60));
+            rolling_stats_addValue(error_minute, algos[i].stats);
         }
     }
 
