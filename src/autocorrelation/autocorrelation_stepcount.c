@@ -21,22 +21,21 @@ static FILE *derivativeFile;
 
 static int8_t deriv_coeffs[DERIV_FILT_LEN] = {-6, 31, 0, -31, 6};
 
-static accel_big_t filtered_buff[NUM_TUPLES] = {0}; // low pass filtered data
-
+static accel_big_t filtered_buff[NUM_TUPLES] = {0};    // low pass filtered data
 static int64_t autocorr_buff[NUM_AUTOCORR_LAGS] = {0}; // autocorrelation results
 static int64_t deriv[NUM_AUTOCORR_LAGS] = {0};         // derivative
 
 static LPFilter autocorr_lpf;
 
 #ifdef DUMP_FILE
-// Function to initialize the dump files
-static void init_dump_files()
-{
+static long autocorr_passes = 0; // counter of how many times the autocorr has been called
 
-    filteredFile = fopen(DUMP_FILTERED_FILE_NAME, "w+");
-    removedMeanFile = fopen(DUMP_REMOVED_MEAN_FILE_NAME, "w+");
-    autocorrelationFile = fopen(DUMP_AUTOCORRELATION_FILE_NAME, "w+");
-    derivativeFile = fopen(DUMP_DERIVATIVE_FILE_NAME, "w+");
+// Function to initialize the dump files
+static void init_dump_files(int autocorr_idx)
+{
+    filteredFile = fopen(DUMP_FILTERED_FILE_NAME, "a");
+    removedMeanFile = fopen(DUMP_REMOVED_MEAN_FILE_NAME, "a");
+    autocorr_passes = 0;
 }
 
 // Function to close the dump files
@@ -78,6 +77,7 @@ static uint32_t SquareRoot(uint32_t a_nInput)
     return res;
 }
 
+// sends the buffer to a low pass filter
 static void lowpass_buffer(accel_big_t *input_buffer, accel_big_t *output_buffer)
 {
     for (int i = 0; i < NUM_TUPLES; i++)
@@ -125,6 +125,16 @@ static void remove_mean(accel_big_t *buffer)
 // Autocorrelation function
 static void autocorr(accel_big_t *buffer, int64_t *autocorr_buff)
 {
+#ifdef DUMP_FILE
+    autocorr_passes++;
+    char autocorrFileName[100] = DUMP_AUTOCORRELATION_FILE_NAME;
+    char idxstr[5];
+    sprintf(idxstr, "%d", autocorr_passes);
+    strcat(autocorrFileName, idxstr);
+    strcat(autocorrFileName, ".csv");
+    autocorrelationFile = fopen(autocorrFileName, "w+");
+#endif
+
     uint8_t lag;
     uint16_t i;
     int64_t temp_ac;
@@ -146,13 +156,25 @@ static void autocorr(accel_big_t *buffer, int64_t *autocorr_buff)
     }
 #ifdef DUMP_FILE
     if (autocorrelationFile)
+    {
         fflush(autocorrelationFile);
+        fclose(autocorrelationFile);
+    }
 #endif
 }
 
 // Derivative calculation
 static void derivative(int64_t *autocorr_buff, int64_t *deriv)
 {
+#ifdef DUMP_FILE
+    char derivativeFilename[100] = DUMP_DERIVATIVE_FILE_NAME;
+    char idxstr[5];
+    sprintf(idxstr, "%d", autocorr_passes);
+    strcat(derivativeFilename, idxstr);
+    strcat(derivativeFilename, ".csv");
+    derivativeFile = fopen(derivativeFilename, "w+");
+#endif
+
     uint8_t n = 0;
     uint8_t i = 0;
     int64_t temp_deriv = 0;
@@ -194,7 +216,10 @@ static void derivative(int64_t *autocorr_buff, int64_t *deriv)
     }
 #ifdef DUMP_FILE
     if (derivativeFile)
+    {
         fflush(derivativeFile);
+        fclose(autocorrelationFile);
+    }
 #endif
 }
 

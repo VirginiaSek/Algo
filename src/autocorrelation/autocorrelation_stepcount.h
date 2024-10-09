@@ -14,10 +14,12 @@
 #include "../types.h"
 
 // #define DUMP_FILE
+#ifdef DUMP_FILE
 #define DUMP_FILTERED_FILE_NAME "filtered.csv"
 #define DUMP_REMOVED_MEAN_FILE_NAME "removed_mean.csv"
-#define DUMP_AUTOCORRELATION_FILE_NAME "autocorrelation.csv"
+#define DUMP_AUTOCORRELATION_FILE_NAME "autocorrelation"
 #define DUMP_DERIVATIVE_FILE_NAME "derivative.csv"
+#endif
 
 #define SAMPLING_RATE 12.5                       // 12.5 hz sampling rate
 #define NUM_TUPLES 50                            // 4 seconds worth of data
