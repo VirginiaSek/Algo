@@ -1,9 +1,9 @@
-#include "pantompkins.h"
+#include "panTompkins.h"
 #include <math.h>  // Per sqrt
-
-#define WINDOWSIZE 4  // Adeguata alla frequenza di campionamento di 12.5 Hz
-const int THRESHOLD = 1200;  // Soglia per rilevare un "passo" sul segnale integrato
-const int REFRACTORY_PERIOD = 320;  // Periodo refrattario in millisecondi
+#include "../types.h"
+//#define WINDOWSIZE 4  // Adeguata alla frequenza di campionamento di 12.5 Hz
+//const int THRESHOLD = 8500;  // Soglia per rilevare un "passo" sul segnale integrato
+//const int REFRACTORY_PERIOD = 320;  // Periodo refrattario in millisecondi
 long unsigned int lastStepTime = 0;
 
 // Definizione dei coefficienti dei filtri
@@ -67,7 +67,7 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
     else
         dcblock[current] = 0;
 
-    // Filtro passa-basso
+    /* Filtro passa-basso
     lowpass[current] = dcblock[current];
     if (current >= 1)
         lowpass[current] += lowpass_coeff1 * lowpass[current - 1];
@@ -77,7 +77,7 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
         lowpass[current] -= lowpass_dcblock_coeff1 * dcblock[current - 6];
     if (current >= 12)
         lowpass[current] += lowpass_dcblock_coeff2 * dcblock[current - 12];
-
+*/
     // Filtro passa-alto
     highpass[current] = -lowpass[current];
     if (current >= 1)

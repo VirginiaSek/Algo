@@ -1,6 +1,6 @@
 #ifndef PT_H
 #define PT_H
-
+#include "panTompkins.h"
 #include "../types.h"  // Assicurati che il tipo `steps_t`, `time_delta_ms_t`, e `accel_t` siano definiti qui.
 
 // Dichiarazione della funzione di inizializzazione dell'algoritmo Pan-Tompkins
