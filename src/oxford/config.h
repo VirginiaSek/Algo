@@ -5,14 +5,16 @@
 #define MOTION_THRESHOLD 1500
 
 // window size of the scoring phase
-#define WINDOW_SIZE 10
+// it needs to contain one step, but possibly less than 2
+// at max 3 steps/s -> less than 333ms -> 4 samples
+#define WINDOW_SIZE 5
 
 // detection threshold whole part and fractional part
 #define DETECTION_TRHE_WHOLE 1
 #define DETECTION_TRHE_PART 7
 
 // time in ms between which to discard steps
-// 3 steps /s is a reasonable maximum
+// 3 steps /s is a reasonable maximum step rate
 #define TIME_THRE 300
 
 // skip filtering step
