@@ -55,16 +55,23 @@ fixed point precision: 16 bits
   actual attenuation = n/a
 
 */
-#define FILTER_TAP_NUM 8
+#define FILTER_TAP_NUM 15
 static accel_big_t filter_taps[FILTER_TAP_NUM] = {
-    -3451,
-    -4928,
-    3799,
-    15850,
-    15850,
-    3799,
-    -4928,
-    -3451};
+    -342,
+    848,
+    2984,
+    1529,
+    -3087,
+    -1143,
+    10308,
+    17553,
+    10308,
+    -1143,
+    -3087,
+    1529,
+    2984,
+    848,
+    -342};
 
 void initFilterStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void (*pNextStage)(void))
 {
