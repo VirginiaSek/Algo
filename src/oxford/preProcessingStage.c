@@ -67,20 +67,17 @@ static void outPutDataPoint(data_point_t dp)
 }
 
 // Variabile di stato per tracciare il tempo cumulativo
-static time_delta_ms_t cumulative_time = 0;
+static uint64_t cumulative_time = 0;
 
 void preProcessSample(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
 
     // Aggiornamento del tempo cumulativo
-    cumulative_time += delta_ms;
-
-    // Adattamento del tempo in base al fattore di scala
-    time_delta_ms_t time = cumulative_time / timeScalingFactor;
+    cumulative_time += (delta_ms / timeScalingFactor);
 
     accel_big_t magnitude = (accel_big_t)sqrt((accel_big_t)(accx * accx + accy * accy + accz * accz));
     data_point_t dataPoint;
-    dataPoint.time = time;
+    dataPoint.time = cumulative_time;
     dataPoint.magnitude = magnitude;
 
 #ifdef DUMP_FILE
