@@ -46,11 +46,12 @@ void initMotionDetectStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void
 
 void motionDetectStage(void)
 {
-    if (ring_buffer_num_items(inBuff) >= 15)
+    int motionDetectBufferLen = (RING_BUFFER_SIZE - 1);
+    if (ring_buffer_num_items(inBuff) >= motionDetectBufferLen)
     {
         accel_big_t min = maxof(accel_big_t);
         accel_big_t max = 0;
-        for (int i = 0; i < 12; i++)
+        for (int i = 0; i < motionDetectBufferLen; i++)
         {
             data_point_t dp;
             ring_buffer_peek(inBuff, &dp, i);
