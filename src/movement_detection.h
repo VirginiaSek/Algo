@@ -17,18 +17,18 @@
 #define DETECTION_BUFFER_LEN 16
 
 /**
- * threshold to identify movement vs non movement
+ * Threshold to identify movement vs non-movement
  */
 #define DETECTION_THRESHOLD 8500
 
 /**
- * Circula buffer containing the magnitude of the acceleration
+ * Circular buffer containing the magnitude of the acceleration
  * See https://en.wikipedia.org/wiki/Circular_buffer
  */
 static accel_big_t detection_stage_buffer[DETECTION_BUFFER_LEN];
 static float detect_mean = 0;
-int detect_buffer_head = 0;
-int detect_buffer_tail = 0;
+static int detect_buffer_head = 0;
+static int detect_buffer_tail = 0;
 
 static bool detection_buffer_is_full()
 {
