@@ -325,7 +325,7 @@ steps_t autcorr_count_steps(accel_big_t *mag_sqrt)
     }
 
     // hone in on the exact peak index
-    // peak_ind = get_precise_peakind(autocorr_buff, peak_ind);
+    peak_ind = get_precise_peakind(autocorr_buff, peak_ind);
     // printf("peak ind: %i\n", peak_ind);
 
     uint8_t num_steps = 0;
