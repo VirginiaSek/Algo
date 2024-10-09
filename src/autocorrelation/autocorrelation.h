@@ -4,6 +4,8 @@
 #include "../movement_detection.h"
 #include "../types.h"
 
+// #define DUMP_FILE
+
 static steps_t autocorrelation_steps_counter = 0;
 static FILE *magnitudeFile = NULL;
 
@@ -14,12 +16,10 @@ static long movement_samples = 0;
 
 void autocorrelation_stepcount_init()
 {
+    autocorrelation_init();
+
     autocorrelation_steps_counter = 0;
     movement_samples = 0;
-
-#ifdef DUMP_FILE
-    magnitudeFile = fopen(DUMP_MAGNITUDE_FILE_NAME, "a");
-#endif
 }
 
 // Wrapper function
@@ -29,15 +29,6 @@ steps_t autocorrelation_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t a
     movement_samples += detect_movement(delta_ms, magn);
 
     autocorr_buffer[autocorr_buffer_index] = magn;
-
-#ifdef DUMP_FILE
-    if (magnitudeFile)
-    {
-
-        fprintf(magnitudeFile, "%ld, %d\n", autocorr_buffer_index, magn);
-        fflush(magnitudeFile);
-    }
-#endif
 
     autocorr_buffer_index++;
 

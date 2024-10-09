@@ -14,7 +14,9 @@
 #include "../types.h"
 
 // #define DUMP_FILE
+
 #ifdef DUMP_FILE
+#define DUMP_MAGNITUDE_FILE_NAME "magnitude.csv"
 #define DUMP_FILTERED_FILE_NAME "filtered.csv"
 #define DUMP_REMOVED_MEAN_FILE_NAME "removed_mean.csv"
 #define DUMP_AUTOCORRELATION_FILE_NAME "autocorrelation"
@@ -24,6 +26,8 @@
 #define SAMPLING_RATE 12.5                       // 12.5 hz sampling rate
 #define NUM_TUPLES 50                            // 4 seconds worth of data
 #define WINDOW_LENGTH NUM_TUPLES / SAMPLING_RATE // window length in seconds: 4
+
+void autocorrelation_init();
 
 steps_t autcorr_count_steps(accel_big_t *data);
 

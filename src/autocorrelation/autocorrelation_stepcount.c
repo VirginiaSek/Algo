@@ -1,12 +1,14 @@
 #include "autocorrelation_stepcount.h"
 #include "stdint.h"
-#include "stdio.h" //for file operations
+#include "stdio.h"   //for file operations
+#include "strings.h" //for file operations
 
 #include "../lowpass_filter.h"
 
 #include "../types.h"
 
 #ifdef DUMP_FILE
+static FILE *magnitudeFile;
 static FILE *filteredFile;
 static FILE *removedMeanFile;
 static FILE *autocorrelationFile;
@@ -28,19 +30,21 @@ static int64_t deriv[NUM_AUTOCORR_LAGS] = {0};         // derivative
 static LPFilter autocorr_lpf;
 
 #ifdef DUMP_FILE
-static long autocorr_passes = 0; // counter of how many times the autocorr has been called
+static int autocorr_passes = 0; // counter of how many times the autocorr has been called
 
 // Function to initialize the dump files
-static void init_dump_files(int autocorr_idx)
+static void init_dump_files()
 {
+    magnitudeFile = fopen(DUMP_MAGNITUDE_FILE_NAME, "a");
     filteredFile = fopen(DUMP_FILTERED_FILE_NAME, "a");
     removedMeanFile = fopen(DUMP_REMOVED_MEAN_FILE_NAME, "a");
-    autocorr_passes = 0;
 }
 
 // Function to close the dump files
 static void close_dump_files()
 {
+    if (magnitudeFile)
+        fclose(magnitudeFile);
     if (filteredFile)
         fclose(filteredFile);
     if (removedMeanFile)
@@ -51,6 +55,20 @@ static void close_dump_files()
         fclose(derivativeFile);
 }
 #endif
+
+void autocorrelation_init()
+{
+    LPFilter_init(&autocorr_lpf);
+    for (int i = 0; i < NUM_AUTOCORR_LAGS; i++)
+    {
+        autocorr_buff[i] = 0;
+        deriv[i] = 0;
+    }
+#ifdef DUMP_FILE
+    init_dump_files();
+    autocorr_passes = 0;
+#endif
+}
 
 // Modified SquareRoot function
 static uint32_t SquareRoot(uint32_t a_nInput)
@@ -87,7 +105,7 @@ static void lowpass_buffer(accel_big_t *input_buffer, accel_big_t *output_buffer
 #ifdef DUMP_FILE
         if (filteredFile)
         {
-            fprintf(filteredFile, "%u, %d\n", n, lpf_magn);
+            fprintf(filteredFile, "%d\n", output_buffer[i]);
             fflush(filteredFile);
         }
 #endif
@@ -293,7 +311,14 @@ static void get_autocorr_peak_stats(int64_t *autocorr_buff, uint8_t *neg_slope_c
 steps_t autcorr_count_steps(accel_big_t *mag_sqrt)
 {
 #ifdef DUMP_FILE
-    init_dump_files();
+    for (int i = 0; i < NUM_TUPLES; i++)
+    {
+        if (magnitudeFile)
+        {
+            fprintf(magnitudeFile, "%d\n", mag_sqrt[i]);
+            fflush(magnitudeFile);
+        }
+    }
 #endif
 
     // Step 1: Apply low pass filter
@@ -332,24 +357,24 @@ steps_t autcorr_count_steps(accel_big_t *mag_sqrt)
 
     // now check the conditions to see if it was a real peak or not, and if so, calculate the number of steps
     // get autocorrelation peak stats
-    // uint8_t neg_slope_count = 0;
-    // int64_t delta_amplitude_right = 0;
-    // uint8_t pos_slope_count = 0;
-    // int64_t delta_amplitude_left = 0;
-    // get_autocorr_peak_stats(autocorr_buff, &neg_slope_count, &delta_amplitude_right, &pos_slope_count, &delta_amplitude_left, peak_ind);
-    // if ((pos_slope_count > AUTOCORR_MIN_HALF_LEN) && (neg_slope_count > AUTOCORR_MIN_HALF_LEN) && (delta_amplitude_right > AUTOCORR_DELTA_AMPLITUDE_THRESH) && (delta_amplitude_left > AUTOCORR_DELTA_AMPLITUDE_THRESH))
-    // {
-    //     // the period is peak_ind/sampling_rate seconds. that corresponds to a frequency of 1/period
-    //     // with the frequency known, and the number of seconds is 4 seconds, you can then find out the number of steps
-    //     num_steps = (SAMPLING_RATE * WINDOW_LENGTH) / peak_ind;
-    // }
-    // else
-    // {
-    //     // not a valid autocorrelation peak
-    //     num_steps = 0;
-    // }
+    uint8_t neg_slope_count = 0;
+    int64_t delta_amplitude_right = 0;
+    uint8_t pos_slope_count = 0;
+    int64_t delta_amplitude_left = 0;
+    get_autocorr_peak_stats(autocorr_buff, &neg_slope_count, &delta_amplitude_right, &pos_slope_count, &delta_amplitude_left, peak_ind);
+    if ((pos_slope_count > AUTOCORR_MIN_HALF_LEN) && (neg_slope_count > AUTOCORR_MIN_HALF_LEN) && (delta_amplitude_right > AUTOCORR_DELTA_AMPLITUDE_THRESH) && (delta_amplitude_left > AUTOCORR_DELTA_AMPLITUDE_THRESH))
+    {
+        // the period is peak_ind/sampling_rate seconds. that corresponds to a frequency of 1/period
+        // with the frequency known, and the number of seconds is 4 seconds, you can then find out the number of steps
+        num_steps = (SAMPLING_RATE * WINDOW_LENGTH) / peak_ind;
+    }
+    else
+    {
+        // not a valid autocorrelation peak
+        num_steps = 0;
+    }
 
-    num_steps = (SAMPLING_RATE * WINDOW_LENGTH) / peak_ind;
+    // num_steps = (SAMPLING_RATE * WINDOW_LENGTH) / peak_ind;
 
 #ifdef DUMP_FILE
     close_dump_files();
