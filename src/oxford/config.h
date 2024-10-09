@@ -21,10 +21,12 @@
 // #define SKIP_FILTER
 
 // use this to allow dumping each stage on file, useful for debugging
-//#define DUMP_FILE
+// #define DUMP_FILE
+#ifdef DUMP_FILE
 #define DUMP_MAGNITUDE_FILE_NAME "magnitude.csv"
 #define DUMP_INTERPOLATED_FILE_NAME "interpolated.csv"
 #define DUMP_FILTERED_FILE_NAME "filtered.csv"
 #define DUMP_SCORING_FILE_NAME "scoring.csv"
 #define DUMP_DETECTION_FILE_NAME "detection.csv"
 #define DUMP_POSTPROC_FILE_NAME "postproc.csv"
+#endif
