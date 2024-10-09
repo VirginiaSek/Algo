@@ -339,13 +339,13 @@ steps_t autcorr_count_steps(accel_big_t *mag_sqrt)
     init_dump_files();
 
     // Step 2: Apply low pass filter
-    lowpassfilt(mag_sqrt, lpf);
+    // lowpassfilt(mag_sqrt, lpf);
 
     // Step 3: Remove the mean
-    remove_mean(lpf);
+    remove_mean(mag_sqrt);
 
     // Step 4: Calculate autocorrelation
-    autocorr(lpf, autocorr_buff);
+    autocorr(mag_sqrt, autocorr_buff);
 
     // Step 5: Calculate derivative
     derivative(autocorr_buff, deriv);
