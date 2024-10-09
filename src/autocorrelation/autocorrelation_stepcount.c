@@ -14,12 +14,13 @@ static FILE *removedMeanFile;
 static FILE *autocorrelationFile;
 static FILE *derivativeFile;
 #endif
+
 #define NUM_AUTOCORR_LAGS 15      // number of lags to calculate for autocorrelation. At a minimum step rate of §1 step /s -> 1000 / sampling_period(ms) = sampling frequency -> add a few more -> 15 at 12.5 Hz
 #define FIRST_AUTOCORR_PEAK_LAG 4 // corresponds to the first feasible autocorrelation lag -> at a max step rate of 3 steps /s (running) -> 333ms / sampling_period(ms) = 4 at 12.5 Hz
 
-#define DERIV_FILT_LEN 7                    // length of derivative filter
-#define AUTOCORR_DELTA_AMPLITUDE_THRESH 5e8 // this is the min delta between peak and trough of autocorrelation peak
-#define AUTOCORR_MIN_HALF_LEN 2             // this is the min number of points the autocorrelation peak should be on either side of the peak
+#define DERIV_FILT_LEN 7                        // length of derivative filter
+#define AUTOCORR_DELTA_AMPLITUDE_THRESH 1000000 // this is the min delta between peak and trough of autocorrelation peak
+#define AUTOCORR_MIN_HALF_LEN 2                 // this is the min number of points the autocorrelation peak should be on either side of the peak
 
 static int8_t deriv_coeffs[DERIV_FILT_LEN] = {-6, 31, 0, -31, 6};
 
