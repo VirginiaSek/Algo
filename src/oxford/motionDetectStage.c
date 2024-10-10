@@ -46,11 +46,12 @@ void initMotionDetectStage(ring_buffer_t *pInBuff, ring_buffer_t *pOutBuff, void
 
 void motionDetectStage(void)
 {
-    int motionDetectBufferLen = (RING_BUFFER_SIZE - 1);
+    int motionDetectBufferLen = 14;
     if (ring_buffer_num_items(inBuff) >= motionDetectBufferLen)
     {
         accel_big_t min = maxof(accel_big_t);
         accel_big_t max = 0;
+        // accel_big_t accum = 0;
         for (int i = 0; i < motionDetectBufferLen; i++)
         {
             data_point_t dp;
@@ -59,9 +60,14 @@ void motionDetectStage(void)
                 max = dp.magnitude;
             if (dp.magnitude < min)
                 min = dp.magnitude;
+
+            // accum += dp.magnitude;
         }
 
+        // int mean = accum / motionDetectBufferLen;
+
         if (max - min > MOTION_THRESHOLD)
+        // if (mean > 8500)
         {
             data_point_t dataPoint;
             ring_buffer_dequeue(inBuff, &dataPoint);
