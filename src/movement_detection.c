@@ -17,7 +17,7 @@
 /**
  * Threshold to identify movement vs non-movement
  */
-#define DETECTION_THRESHOLD 8500
+#define DETECTION_THRESHOLD 1500
 
 /**
  * Circular buffer containing the magnitude of the acceleration
@@ -90,7 +90,6 @@ static bool detection_buffer_peek(int index, accel_big_t *value)
     }
 
     int readIndex = (detect_buffer_tail + index) % DETECTION_BUFFER_LEN;
-    // printf("index %d, tail %d, readIndex %d\n", index, detect_buffer_tail, readIndex);
 
     *value = detection_stage_buffer[readIndex]; // Read data
     return 1;                                   // return success to indicate successful push.
@@ -114,11 +113,10 @@ void detection_stage_init()
  * Detects movement in the signal
  * delta_ms: time in ms since last sample
  * magnitude: acceleration magntiude
- * returns: 0 if no movement is detected, and 1 if there is movement*
+ * returns: false if no movement is detected, and true if there is movement
  */
 bool detect_movement(time_delta_ms_t delta_ms, accel_big_t magnitude)
 {
-    // printf("putting %d\n", magnitude);
     // add to the buffer
     detection_buffer_put(magnitude);
 
@@ -130,7 +128,6 @@ bool detect_movement(time_delta_ms_t delta_ms, accel_big_t magnitude)
         accel_big_t magn_read = 0;
         detection_buffer_peek(i, &magn_read);
 
-        // printf("reading at position %d %d\n", i, magn_read);
         if (magn_read > max)
         {
             max = magn_read;
@@ -140,36 +137,15 @@ bool detect_movement(time_delta_ms_t delta_ms, accel_big_t magnitude)
             min = magn_read;
         }
     }
+    // if the buffer is full, remove the oldest
     if (detection_buffer_len() >= (DETECTION_BUFFER_LEN - 1))
     {
         accel_big_t magn_removed = 0;
         detection_buffer_get(&magn_removed);
     }
-    if ((max - min) > 1500)
+    // movement is detected if max - min is above a threshold
+    if ((max - min) > DETECTION_THRESHOLD)
         return true;
     else
         return false;
-
-    // if (detection_buffer_len() < (DETECTION_BUFFER_LEN - 1))
-    // {
-    //     float delta = (float)magnitude - detect_mean;
-    //     detect_mean += delta / detection_buffer_len();
-    // }
-    // else
-    // {
-    //     // remove oldest value from buffer
-    //     accel_big_t magn_removed = 0;
-    //     detection_buffer_get(&magn_removed);
-
-    //     // printf("removed %d\n", magn_removed);
-
-    //     detect_mean += ((float)magnitude - (float)magn_removed) / (DETECTION_BUFFER_LEN - 2);
-    // }
-
-    // // printf("moving avg %.2f\n", detect_mean);
-
-    // if (detect_mean > DETECTION_THRESHOLD)
-    //     return true;
-    // else
-    //     return false;
 }
