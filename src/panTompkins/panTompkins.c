@@ -1,30 +1,32 @@
 #include "panTompkins.h"
-#include <math.h>  // Per sqrt
+#include <math.h> // Per sqrt
 
-#define FS 12.5  // Frequenza di campionamento di 12.5 Hz
-#define WINDOWSIZE 4  // Finestra di integrazione adattata per 12.5 Hz
-#define BUFFSIZE 600  // Dimensione buffer
-#define NOSAMPLE -32000  // Indicatore di fine campioni
+#define FS 12.5         // sampling frequency 12.5 Hz
+#define WINDOWSIZE 4    // Finestra di integrazione adattata per 12.5 Hz
+#define BUFFSIZE 600    // Dimensione buffer
+#define NOSAMPLE -32000 // Indicatore di fine campioni
 
 // Soglie adattive per rilevamento dei picchi (passi)
-dataType threshold_i1 = 15000;
-dataType threshold_i2 = 10000;
-dataType threshold_f1 = 12000;
-dataType threshold_f2 = 8000;
+accel_big_t threshold_i1 = 15000;
+accel_big_t threshold_i2 = 10000;
+accel_big_t threshold_f1 = 12000;
+accel_big_t threshold_f2 = 8000;
 
 // Variabili globali per i filtri e i buffer
-dataType signal[BUFFSIZE], dcblock[BUFFSIZE], lowpass[BUFFSIZE], highpass[BUFFSIZE], derivative[BUFFSIZE], squared[BUFFSIZE], integral[BUFFSIZE];
+accel_big_t signal[BUFFSIZE], dcblock[BUFFSIZE], lowpass[BUFFSIZE], highpass[BUFFSIZE], derivative[BUFFSIZE], squared[BUFFSIZE], integral[BUFFSIZE];
 int rr1[8], rr2[8], rravg1 = 0, rravg2 = 0;
 int rrlow = 0, rrhigh = 0, rrmiss = 0;
 long unsigned int sample = 0, lastQRS = 0, lastSlope = 0, currentSlope = 0;
 int current = 0;
-dataType peak_i = 0, peak_f = 0, spk_i = 0, spk_f = 0, npk_i = 0, npk_f = 0;
+accel_big_t peak_i = 0, peak_f = 0, spk_i = 0, spk_f = 0, npk_i = 0, npk_f = 0;
 bool qrs = false, regular = true, prevRegular;
-int step_counter = 0;  // Contatore per i passi
+int step_counter = 0; // Contatore per i passi
 
-void pantompkins_init() {
+void pantompkins_init()
+{
     // Inizializzazione delle variabili e buffer
-    for (int i = 0; i < BUFFSIZE; i++) {
+    for (int i = 0; i < BUFFSIZE; i++)
+    {
         signal[i] = 0;
         dcblock[i] = 0;
         lowpass[i] = 0;
@@ -33,36 +35,42 @@ void pantompkins_init() {
         squared[i] = 0;
         integral[i] = 0;
     }
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++)
+    {
         rr1[i] = 0;
         rr2[i] = 0;
     }
     rravg1 = 0;
     rravg2 = 0;
-    step_counter = 0;  // Reset del contatore passi
+    step_counter = 0; // Reset del contatore passi
     lastQRS = 0;
     lastSlope = 0;
     currentSlope = 0;
     sample = 0;
 }
 
-steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz) {
+steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
+{
     // Calcola la magnitudine dell'accelerazione
-    dataType magnitude = sqrt(accx * accx + accy * accy + accz * accz);
+    accel_big_t magnitude = sqrt(accx * accx + accy * accy + accz * accz);
 
     // Shift dei buffer
-    if (sample >= BUFFSIZE) {
-        for (int i = 0; i < BUFFSIZE - 1; i++) {
-            signal[i] = signal[i+1];
-            dcblock[i] = dcblock[i+1];
-            lowpass[i] = lowpass[i+1];
-            highpass[i] = highpass[i+1];
-            derivative[i] = derivative[i+1];
-            squared[i] = squared[i+1];
-            integral[i] = integral[i+1];
+    if (sample >= BUFFSIZE)
+    {
+        for (int i = 0; i < BUFFSIZE - 1; i++)
+        {
+            signal[i] = signal[i + 1];
+            dcblock[i] = dcblock[i + 1];
+            lowpass[i] = lowpass[i + 1];
+            highpass[i] = highpass[i + 1];
+            derivative[i] = derivative[i + 1];
+            squared[i] = squared[i + 1];
+            integral[i] = integral[i + 1];
         }
         current = BUFFSIZE - 1;
-    } else {
+    }
+    else
+    {
         current = sample;
     }
 
@@ -70,9 +78,12 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
     signal[current] = magnitude;
 
     // Filtro DC Block
-    if (current >= 1) {
+    if (current >= 1)
+    {
         dcblock[current] = signal[current] - signal[current - 1] + 0.995 * dcblock[current - 1];
-    } else {
+    }
+    else
+    {
         dcblock[current] = 0;
     }
 
@@ -106,7 +117,8 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
 
     // Integrazione finestrata
     integral[current] = 0;
-    for (int i = 0; i < WINDOWSIZE; i++) {
+    for (int i = 0; i < WINDOWSIZE; i++)
+    {
         if (current >= i)
             integral[current] += squared[current - i];
         else
@@ -115,22 +127,30 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
     integral[current] /= WINDOWSIZE;
 
     // Se sia l'integrale che il segnale sono sopra le soglie, è probabilmente un picco.
-    if ((integral[current] >= threshold_i1) && (highpass[current] >= threshold_f1)) {
+    if ((integral[current] >= threshold_i1) && (highpass[current] >= threshold_f1))
+    {
         // C'è una latenza di 200ms. Se il nuovo picco rispetta questa condizione, possiamo continuare i test.
-        if (sample > lastQRS + FS / 5) {
+        if (sample > lastQRS + FS / 5)
+        {
             // Rispetta la latenza di 200ms, ma non quella di 360ms, quindi controlliamo la pendenza.
-            if (sample <= lastQRS + (long unsigned int)(0.36 * FS)) {
+            if (sample <= lastQRS + (long unsigned int)(0.36 * FS))
+            {
                 // La derivata quadrata è "a forma di M", quindi dobbiamo controllare campioni vicini per assicurarci di essere al valore massimo.
                 currentSlope = 0;
-                for (int j = current - 10; j <= current; j++) {
-                    if (squared[j] > currentSlope) {
+                for (int j = current - 10; j <= current; j++)
+                {
+                    if (squared[j] > currentSlope)
+                    {
                         currentSlope = squared[j];
                     }
                 }
 
-                if (currentSlope <= (dataType)(lastSlope / 2)) {
+                if (currentSlope <= (accel_big_t)(lastSlope / 2))
+                {
                     qrs = false;
-                } else {
+                }
+                else
+                {
                     spk_i = 0.125 * peak_i + 0.875 * spk_i;
                     threshold_i1 = npk_i + 0.25 * (spk_i - npk_i);
                     threshold_i2 = 0.5 * threshold_i1;
@@ -142,10 +162,14 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
                     lastSlope = currentSlope;
                     qrs = true;
                 }
-            } else {
+            }
+            else
+            {
                 currentSlope = 0;
-                for (int j = current - 10; j <= current; j++) {
-                    if (squared[j] > currentSlope) {
+                for (int j = current - 10; j <= current; j++)
+                {
+                    if (squared[j] > currentSlope)
+                    {
                         currentSlope = squared[j];
                     }
                 }
@@ -161,7 +185,9 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
                 lastSlope = currentSlope;
                 qrs = true;
             }
-        } else {
+        }
+        else
+        {
             // Se il nuovo picco non rispetta la latenza di 200ms, è rumore. Aggiorna le soglie e vai al campione successivo.
             peak_i = integral[current];
             npk_i = 0.125 * peak_i + 0.875 * npk_i;
@@ -178,9 +204,11 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
     }
 
     // Se è stato rilevato un picco, aggiorna gli intervalli RR.
-    if (qrs) {
+    if (qrs)
+    {
         rravg1 = 0;
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 7; i++)
+        {
             rr1[i] = rr1[i + 1];
             rravg1 += rr1[i];
         }
@@ -190,9 +218,11 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
         rravg1 *= 0.125;
 
         // Se l'intervallo RR scoperto è normale, aggiornalo.
-        if ((rr1[7] >= rrlow) && (rr1[7] <= rrhigh)) {
+        if ((rr1[7] >= rrlow) && (rr1[7] <= rrhigh))
+        {
             rravg2 = 0;
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < 7; i++)
+            {
                 rr2[i] = rr2[i + 1];
                 rravg2 += rr2[i];
             }
@@ -205,11 +235,15 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
         }
 
         prevRegular = regular;
-        if (rravg1 == rravg2) {
+        if (rravg1 == rravg2)
+        {
             regular = true;
-        } else {
+        }
+        else
+        {
             regular = false;
-            if (prevRegular) {
+            if (prevRegular)
+            {
                 threshold_i1 /= 2;
                 threshold_f1 /= 2;
             }
@@ -220,19 +254,27 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
     }
 
     // Se non è stato rilevato un picco per troppo tempo, utilizza soglie più leggere e fai una ricerca retroattiva.
-    if (!qrs && (sample - lastQRS > (long unsigned int)rrmiss) && (sample > lastQRS + FS / 5)) {
-        for (int i = current - (sample - lastQRS) + FS / 5; i < (long unsigned int)current; i++) {
-            if ((integral[i] > threshold_i2) && (highpass[i] > threshold_f2)) {
+    if (!qrs && (sample - lastQRS > (long unsigned int)rrmiss) && (sample > lastQRS + FS / 5))
+    {
+        for (int i = current - (sample - lastQRS) + FS / 5; i < (long unsigned int)current; i++)
+        {
+            if ((integral[i] > threshold_i2) && (highpass[i] > threshold_f2))
+            {
                 currentSlope = 0;
-                for (int j = i - 10; j <= i; j++) {
-                    if (squared[j] > currentSlope) {
+                for (int j = i - 10; j <= i; j++)
+                {
+                    if (squared[j] > currentSlope)
+                    {
                         currentSlope = squared[j];
                     }
                 }
 
-                if ((currentSlope < (dataType)(lastSlope / 2)) && (i + sample) < lastQRS + 0.36 * lastQRS) {
+                if ((currentSlope < (accel_big_t)(lastSlope / 2)) && (i + sample) < lastQRS + 0.36 * lastQRS)
+                {
                     qrs = false;
-                } else {
+                }
+                else
+                {
                     peak_i = integral[i];
                     peak_f = highpass[i];
                     spk_i = 0.25 * peak_i + 0.75 * spk_i;
@@ -246,7 +288,8 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
                     threshold_f2 = 0.5 * threshold_f1;
 
                     rravg1 = 0;
-                    for (int j = 0; j < 7; j++) {
+                    for (int j = 0; j < 7; j++)
+                    {
                         rr1[j] = rr1[j + 1];
                         rravg1 += rr1[j];
                     }
@@ -255,9 +298,11 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
                     rravg1 += rr1[7];
                     rravg1 *= 0.125;
 
-                    if ((rr1[7] >= rrlow) && (rr1[7] <= rrhigh)) {
+                    if ((rr1[7] >= rrlow) && (rr1[7] <= rrhigh))
+                    {
                         rravg2 = 0;
-                        for (int i = 0; i < 7; i++) {
+                        for (int i = 0; i < 7; i++)
+                        {
                             rr2[i] = rr2[i + 1];
                             rravg2 += rr2[i];
                         }
@@ -270,11 +315,15 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
                     }
 
                     prevRegular = regular;
-                    if (rravg1 == rravg2) {
+                    if (rravg1 == rravg2)
+                    {
                         regular = true;
-                    } else {
+                    }
+                    else
+                    {
                         regular = false;
-                        if (prevRegular) {
+                        if (prevRegular)
+                        {
                             threshold_i1 /= 2;
                             threshold_f1 /= 2;
                         }
@@ -286,6 +335,6 @@ steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t a
         }
     }
 
-    sample++;  // Incrementa il contatore dei campioni
-    return step_counter;  // Restituisce il conteggio aggiornato dei passi
+    sample++;            // Incrementa il contatore dei campioni
+    return step_counter; // Restituisce il conteggio aggiornato dei passi
 }
