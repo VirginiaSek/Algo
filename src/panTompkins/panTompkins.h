@@ -8,17 +8,15 @@
 typedef int dataType;
 
 // Definizione di costanti
-#define WINDOWSIZE 4      // Modifica la dimensione della finestra di integrazione
-#define BUFFSIZE 600       // Dimensione del buffer
-#define THRESHOLD 1200     // Soglia adattata
+//#define WINDOWSIZE 4      // Modifica la dimensione della finestra di integrazione
+//#define BUFFSIZE 20      // Dimensione del buffer
+#define THRESHOLD 8500     // Soglia adattata
 #define REFRACTORY_PERIOD 320  // Periodo refrattario in millisecondi
 
 // Definizione delle funzioni
-void panTompkins();
-void init(char file_in[], char file_out[]);
-
-// Aggiungere le nuove funzioni per il conteggio dei passi
 void pantompkins_init();
+// Aggiungere le nuove funzioni per il conteggio dei passi
+
 steps_t pantompkins_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
 
 #endif
