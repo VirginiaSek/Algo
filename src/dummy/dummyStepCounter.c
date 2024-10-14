@@ -31,14 +31,15 @@ void dummy_stepcount_init()
 // process sample
 steps_t dummy_stepcount(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
-    static int index = 0;
     uint16_t magn = sqrt(accx * accx + accy * accy + accz * accz);
     bool ismoving = detect_movement(delta_ms, magn, &dummy_mov_detect_buffer);
-    if (!ismoving)
-    {
-        printf("Not moving at %d\n", index);
-    }
-    index++;
+    // uncomment this to test the movement detector:
+    // static int index = 0;
+    // if (!ismoving)
+    // {
+    //     printf("Not moving at %d\n", index);
+    // }
+    // index++;
 
     if (delta_ms > 0 && ismoving)
     {

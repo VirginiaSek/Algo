@@ -213,6 +213,7 @@ int main(int argc, char *argv[])
         // counter of the line number
         unsigned int lineN = 0;
         unsigned int previous_ms = 0;
+        unsigned int first_ms = -1;
 
         while (fgets(line, sizeof(line), accel_fp) != NULL)
         {
@@ -274,8 +275,10 @@ int main(int argc, char *argv[])
         for (int i = 0; i < algoN; i++)
         {
             double error = (double)algos[i].counter - (double)ref_imu;
-            double error_minute = error / ((double)previous_ms / (1000 * 60));
+            double time_ms = ((double)(previous_ms - first_ms) / (1000 * 60));
+            double error_minute = error / time_ms;
             rolling_stats_addValue(error_minute, algos[i].stats);
+            // printf("Time minutes: %.1f, samples N: %d\n", time_ms, lineN);
         }
     }
 
