@@ -106,7 +106,7 @@ static void lowpass_buffer(accel_big_t *input_buffer, accel_big_t *output_buffer
 #ifdef DUMP_FILE
         if (filteredFile)
         {
-            fprintf(filteredFile, "%d\n", output_buffer[i]);
+            fprintf(filteredFile, "%u, %d\n",i, output_buffer[i]);
             fflush(filteredFile);
         }
 #endif
@@ -316,7 +316,7 @@ steps_t autcorr_count_steps(accel_big_t *mag_sqrt)
     {
         if (magnitudeFile)
         {
-            fprintf(magnitudeFile, "%d\n", mag_sqrt[i]);
+            fprintf(magnitudeFile, "%u, %d\n",i, mag_sqrt[i]);
             fflush(magnitudeFile);
         }
     }
