@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "./types.h"
 
@@ -20,6 +21,7 @@ typedef struct Algo
     void (*init)();
     steps_t (*step_count)(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz);
     steps_t counter;
+    clock_t total_time;
 } Algo;
 
 ////////////////////////////////////
@@ -127,7 +129,7 @@ int main(int argc, char *argv[])
     fprintf(out_fp, "FILENAME,Reference,");
     for (int i = 0; i < algoN; i++)
     {
-        fprintf(out_fp, "%s", algos[i].name);
+        fprintf(out_fp, "%s,cycles", algos[i].name);
         if (i < algoN - 1)
             fprintf(out_fp, ",");
     }
@@ -207,6 +209,7 @@ int main(int argc, char *argv[])
         for (int i = 0; i < algoN; i++)
         {
             algos[i].counter = 0;
+            algos[i].total_time = 0;
             algos[i].init();
         }
 
@@ -242,6 +245,11 @@ int main(int argc, char *argv[])
                     continue;
                 }
 
+                if (first_ms == -1)
+                {
+                    first_ms = ms;
+                }
+
                 // Process the extracted integer values
                 // printf("Values: %d, %d, %d, %d\n", ms, accx, accy, accy);
 
@@ -252,7 +260,10 @@ int main(int argc, char *argv[])
                 // call all algorithms here:
                 for (int i = 0; i < algoN; i++)
                 {
+                    clock_t start_t;
+                    start_t = clock();
                     algos[i].counter = algos[i].step_count(delta_ms, accx, accy, accz);
+                    algos[i].total_time += clock() - start_t;
                 }
 
                 previous_ms = ms;
@@ -264,7 +275,8 @@ int main(int argc, char *argv[])
         fprintf(out_fp, "%s,%d,", entry->d_name, ref_imu);
         for (int i = 0; i < algoN; i++)
         {
-            fprintf(out_fp, "%d", algos[i].counter);
+            fprintf(out_fp, "%d,", algos[i].counter);
+            fprintf(out_fp, "%lu", algos[i].total_time);
 
             if (i < algoN - 1)
                 fprintf(out_fp, ",");
