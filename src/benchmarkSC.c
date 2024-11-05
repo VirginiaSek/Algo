@@ -14,6 +14,8 @@
 #include "./oxford/oxford.h"
 #include "./panTompkins/pt.h"
 #include "./autocorrelation/autocorrelation.h"
+#include "./autocorrelation2/autocorrelation2.h"
+
 typedef struct Algo
 {
     char *name;
@@ -28,7 +30,7 @@ typedef struct Algo
 // START MODIFY HERE TO ADD NEW ALGO
 
 // all algorithms:
-const int algoN = 6; // change this to algo number!
+const int algoN = 7; // change this to algo number!
 Algo algos[algoN];
 
 void createAlgos()
@@ -64,6 +66,7 @@ void createAlgos()
         .step_count = oxford_stepcount_totalsteps,
         .counter = 0,
     };
+
     algos[4] = (Algo){
         .name = "PanTompkins",
         .stats = malloc(sizeof(Stats)),
@@ -71,11 +74,20 @@ void createAlgos()
         .step_count = pantompkins_totalsteps,
         .counter = 0,
     };
+
     algos[5] = (Algo){
         .name = "Autocorrelation",
         .stats = malloc(sizeof(Stats)),
         .init = autocorrelation_stepcount_init, // Use the initialization wrapper
         .step_count = autocorrelation_stepcount_totalsteps,
+        .counter = 0,
+    };
+
+    algos[6] = (Algo){
+        .name = "Autocorrelation2",
+        .stats = malloc(sizeof(Stats)),
+        .init = autocorrelation_2_init, // Use the initialization wrapper
+        .step_count = autocorrelation2_stepcount_totalsteps,
         .counter = 0,
     };
 }
