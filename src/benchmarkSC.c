@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 4)
     {
-        printf("Usage: %s <directory> <reference> <results>\n", argv[0]);
+        printf("Usage: %s <input directory> <reference> <output directory>\n", argv[0]);
         return 1;
     }
 
@@ -125,10 +125,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // output file
+    // Create results file
     FILE *out_fp;
-    // Create output file
-    out_fp = fopen(argv[3], "w");
+    // add path to the filename
+    char out_filename[256];
+    snprintf(out_filename, sizeof(out_filename), "%s/results.csv", argv[3]);
+    out_fp = fopen(out_filename, "w");
     if (out_fp == NULL)
     {
         perror("Error creating results file\n");
@@ -136,16 +138,6 @@ int main(int argc, char *argv[])
     }
 
     createAlgos();
-
-    // write header of output file
-    fprintf(out_fp, "FILENAME,Reference,");
-    for (int i = 0; i < algoN; i++)
-    {
-        fprintf(out_fp, "%s,cycles", algos[i].name);
-        if (i < algoN - 1)
-            fprintf(out_fp, ",");
-    }
-    fprintf(out_fp, "\n");
 
     // init all stats
     for (int i = 0; i < algoN; i++)
@@ -197,7 +189,7 @@ int main(int argc, char *argv[])
                 int bangle_ref = 0;
                 int IMU_ref = 0;
                 char activity[256];
-                if (sscanf(ref_line, "%d,%[a-zA-Z0-9_],%d,%d,%s", &subj_number, ref_filename, &bangle_ref, &IMU_ref, activity) == 5)
+                if (sscanf(ref_line, "%d;%[a-zA-Z0-9_];%d;%d;%s", &subj_number, ref_filename, &bangle_ref, &IMU_ref, activity) == 5)
                 {
                     strcat(ref_filename, ".csv");
                     // printf("%d %s %s\n", subj_number, ref_filename, entry->d_name);
@@ -225,6 +217,29 @@ int main(int argc, char *argv[])
             algos[i].init();
         }
 
+        // open the output file
+        // Construct the full path to the file
+        char steps_filepath[256];
+        snprintf(steps_filepath, sizeof(steps_filepath), "%s/steps_%s.csv", argv[3], entry->d_name);
+
+        // Open the file for writing
+        FILE *fps = fopen(steps_filepath, "w");
+        if (fps == NULL)
+        {
+            perror("Error opening steps file");
+            return 1;
+        }
+
+        // write header of steps output file
+        fprintf(fps, "Time,");
+        for (int i = 0; i < algoN; i++)
+        {
+            fprintf(fps, "%s", algos[i].name);
+            if (i < algoN - 1)
+                fprintf(fps, ",");
+        }
+        fprintf(fps, "\n");
+
         // counter of the line number
         unsigned int lineN = 0;
         unsigned int previous_ms = 0;
@@ -251,12 +266,6 @@ int main(int argc, char *argv[])
                     continue;
                 }
 
-                if (lineN < 100 && ms > 10000)
-                {
-                    // discard initial values that belong to previous tests
-                    continue;
-                }
-
                 if (first_ms == -1)
                 {
                     first_ms = ms;
@@ -276,7 +285,14 @@ int main(int argc, char *argv[])
                     start_t = clock();
                     algos[i].counter = algos[i].step_count(delta_ms, accx, accy, accz);
                     algos[i].total_time += clock() - start_t;
+                    // write header of steps output file
+                    fprintf(fps, "%d", algos[i].counter);
+                    if (i < algoN - 1)
+                    {
+                        fprintf(fps, ",");
+                    }
                 }
+                fprintf(fps, "\n");
 
                 previous_ms = ms;
             }
