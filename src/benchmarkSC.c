@@ -278,6 +278,8 @@ int main(int argc, char *argv[])
                 if (lineN > 2)
                     delta_ms = ms - previous_ms;
 
+                fprintf(fps, "%d,", ms);
+
                 // call all algorithms here:
                 for (int i = 0; i < algoN; i++)
                 {
