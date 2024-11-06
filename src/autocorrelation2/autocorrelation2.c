@@ -24,6 +24,7 @@ static int samples_since_step_count = 0;
 static accel_big_t window_step_min, window_step_max;
 #define MOVEMENT_DETECTION_THRESHOLD 1500
 
+// total steps counter, use decimals because fractions are added at each WINDOW_STEP
 static double total_steps = 0;
 
 // uncomment to debug for ONE FILE ONLY!
@@ -139,7 +140,7 @@ steps_t autocorrelation2_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t 
 #endif
 
             // find the peak
-            uint8_t peak_found = 0;
+            uint8_t autocorr_peak_found = 0;
             for (lag = FIRST_AUTOCORR_PEAK_LAG; lag <= LAST_AUTOCORR_PEAK_LAG; lag++)
             {
                 // printf("looking at lag %d for peak\n", lag);
@@ -154,16 +155,16 @@ steps_t autocorrelation2_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t 
                         (autocorr_buff[lag] - autocorr_buff[lag + 2] > AUTOCORR_PEAK_THRE))
                     {
                         // peak is high enough, real peak
-                        peak_found = 1;
+                        autocorr_peak_found = 1;
                         break;
                     }
                 }
             }
 
-            if (peak_found)
+            if (autocorr_peak_found)
             {
                 // the n of steps walked in the WINDOW_STEP time is the lenght of the window / periodicity (in samples)
-                float num_steps = (float)WINDOW_STEP / (float)lag;
+                float num_steps = (float)WINDOW_STEP / lag;
                 total_steps += num_steps;
             }
         }
