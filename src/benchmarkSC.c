@@ -15,6 +15,7 @@
 #include "./panTompkins/pt.h"
 #include "./autocorrelation/autocorrelation.h"
 #include "./autocorrelation2/autocorrelation2.h"
+#include "./fft/fft.h"
 
 typedef struct Algo
 {
@@ -30,7 +31,7 @@ typedef struct Algo
 // START MODIFY HERE TO ADD NEW ALGO
 
 // all algorithms:
-const int algoN = 7; // change this to algo number!
+const int algoN = 8; // change this to algo number!
 Algo algos[algoN];
 
 void createAlgos()
@@ -88,6 +89,13 @@ void createAlgos()
         .stats = malloc(sizeof(Stats)),
         .init = autocorrelation_2_init, // Use the initialization wrapper
         .step_count = autocorrelation2_stepcount_totalsteps,
+        .counter = 0,
+    };
+     algos[6] = (Algo){
+        .name = "fft",
+        .stats = malloc(sizeof(Stats)),
+        .init = fft_init, // Use the initialization wrapper
+        .step_count = fft_stepcount_totalsteps,
         .counter = 0,
     };
 }
