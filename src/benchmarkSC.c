@@ -91,7 +91,7 @@ void createAlgos()
         .step_count = autocorrelation2_stepcount_totalsteps,
         .counter = 0,
     };
-     algos[6] = (Algo){
+    algos[7] = (Algo){
         .name = "fft",
         .stats = malloc(sizeof(Stats)),
         .init = fft_init, // Use the initialization wrapper
@@ -146,6 +146,16 @@ int main(int argc, char *argv[])
     }
 
     createAlgos();
+
+    // write header of output file
+    fprintf(out_fp, "FILENAME,Reference,");
+    for (int i = 0; i < algoN; i++)
+    {
+        fprintf(out_fp, "%s,cycles", algos[i].name);
+        if (i < algoN - 1)
+            fprintf(out_fp, ",");
+    }
+    fprintf(out_fp, "\n");
 
     // init all stats
     for (int i = 0; i < algoN; i++)

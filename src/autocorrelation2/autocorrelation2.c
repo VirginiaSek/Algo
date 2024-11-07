@@ -16,7 +16,7 @@ static int signal_buffer_next_i;                    // index of the next sample 
 
 #define AUTOCORRELATION_BUFFER_LEN 18 // number of autocorrelation samples, = LAST_AUTOCORR_PEAK_LAG + 2 = 18
 static int64_t autocorr_buff[AUTOCORRELATION_BUFFER_LEN] = {0};
-#define AUTOCORR_PEAK_THRE 100000
+#define AUTOCORR_PEAK_THRE 1e5
 
 static int samples_since_step_count = 0;
 

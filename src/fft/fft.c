@@ -6,9 +6,11 @@
 #include "../lowpass_filter.h"
 #include "../types.h"
 
-#define WINDOW_LEN 32             // sliding window length, better if power of 2 (if we want to switch to FFT), 32 samples = 2.5s , 64 samples = 5.12 s
-#define WINDOW_STEP 12            // step of the sliding window, kept at roughly the longest step time (1s)
-#define SAMPLING_FREQ 12.5    
+#define WINDOW_LEN 32  // sliding window length, better if power of 2 (if we want to switch to FFT), 32 samples = 2.5s , 64 samples = 5.12 s
+#define WINDOW_STEP 12 // step of the sliding window, kept at roughly the longest step time (1s)
+#define SAMPLING_FREQ 12.5
+#define MIN_FREQ_FFT_I 2 // index of the FFT corresponding to the minimum step rate -> 1Hz * len / fs -> 2.56 -> leave it at 2
+#define MAX_FREQ_FFT_I 7 // index of the FFT corresponding to the maximum step rate -> 3Hz * len / fs -> 7.68 -> leave it at 7
 
 // Buffers and counters
 static accel_big_t signal_buffer[WINDOW_LEN] = {0};
@@ -21,63 +23,77 @@ static accel_big_t window_step_min, window_step_max;
 #define MOVEMENT_DETECTION_THRESHOLD 1500
 
 // Complex number structure
-typedef struct {
+typedef struct
+{
     double real;
     double imag;
 } complex_double;
 
+static complex_double fft_input[WINDOW_LEN];
+
+static int buffer_index_plus(int buffer_next_i, int plus, int max)
+{
+    return (buffer_next_i + plus) % max;
+}
+
 // Log base 2 function
-int my_log2(int N) {
+int my_log2(int N)
+{
     int k = N, i = 0;
-    while(k) {
+    while (k)
+    {
         k >>= 1;
         i++;
     }
     return i - 1;
 }
 
-// Check if a number is a power of 2
-int check(int n) {
-    return n > 0 && (n & (n - 1)) == 0;
-}
-
 // Function to calculate the reverse index based on bit permutation
-int reverse(int N, int n) {
+int reverse(int N, int n)
+{
+    int log2N = my_log2(N);
     int j, p = 0;
-    for(j = 1; j <= my_log2(N); j++) {
-        if(n & (1 << (my_log2(N) - j)))
+    for (j = 1; j <= log2N; j++)
+    {
+        if (n & (1 << (log2N - j)))
             p |= 1 << (j - 1);
     }
     return p;
 }
 
 // Function to reorder the array based on the reverse index
-void ordina(complex_double* f1, int N) {
+void ordina(complex_double *f1, int N)
+{
     complex_double f2[WINDOW_LEN];
-    for(int i = 0; i < N; i++)
+    for (int i = 0; i < N; i++)
         f2[i] = f1[reverse(N, i)];
-    for(int j = 0; j < N; j++)
+    for (int j = 0; j < N; j++)
         f1[j] = f2[j];
 }
 
 // FFT transform function
-void transform(complex_double* f, int N) {
-    ordina(f, N);  // First reorder the array
+void transform(complex_double *f, int N)
+{
+    ordina(f, N); // First reorder the array
     complex_double *W;
     W = (complex_double *)malloc(N / 2 * sizeof(complex_double));
     W[1].real = cos(-2. * M_PI / N);
     W[1].imag = sin(-2. * M_PI / N);
     W[0].real = 1;
     W[0].imag = 0;
-    for(int i = 2; i < N / 2; i++) {
+    for (int i = 2; i < N / 2; i++)
+    {
         W[i].real = cos(-2. * M_PI * i / N);
         W[i].imag = sin(-2. * M_PI * i / N);
     }
     int n = 1;
     int a = N / 2;
-    for(int j = 0; j < my_log2(N); j++) {
-        for(int i = 0; i < N; i++) {
-            if(!(i & n)) {
+    for (int j = 0; j < my_log2(N); j++)
+    {
+        for (int i = 0; i < N; i++)
+        {
+            if (!(i & n))
+            {
                 complex_double temp = f[i];
                 complex_double Temp = W[(i * a) % (n * a)];
                 Temp.real *= f[i + n].real - f[i].real;
@@ -95,21 +111,25 @@ void transform(complex_double* f, int N) {
 }
 
 // FFT function
-void FFT(complex_double* f, int N, double d) {
+void FFT(complex_double *f, int N, double d)
+{
     transform(f, N);
     // Scale the FFT result by multiplying each value by the step size 'd'
-    for(int i = 0; i < N; i++) {
+    for (int i = 0; i < N; i++)
+    {
         f[i].real *= d;
         f[i].imag *= d;
     }
 }
 
 // FFT initialization function
-void fft_init() {
+void fft_init()
+{
     total_steps = 0;
     samples_since_step_count = 0;
     // Initialize the signal buffer to zeros
-    for (int i = 0; i < WINDOW_LEN; i++) {
+    for (int i = 0; i < WINDOW_LEN; i++)
+    {
         signal_buffer[i] = 0;
     }
     signal_buffer_next_i = 0;
@@ -119,9 +139,12 @@ void fft_init() {
 }
 
 // Function to count total steps
-steps_t fft_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz) {
+steps_t fft_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
+{
     // Calculate the magnitude of the acceleration vector
     uint16_t magn = sqrt(accx * accx + accy * accy + accz * accz);
+
+    // TODO: LPF
 
     // Add the magnitude to the circular buffer
     signal_buffer[signal_buffer_next_i] = magn;
@@ -130,23 +153,28 @@ steps_t fft_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t
     samples_since_step_count++;
 
     // Update the window's min and max values
-    if (magn < window_step_min) {
+    if (magn < window_step_min)
+    {
         window_step_min = magn;
     }
-    if (magn > window_step_max) {
+    if (magn > window_step_max)
+    {
         window_step_max = magn;
     }
 
     // After WINDOW_STEP samples, check if it's time to perform the analysis
-    if (samples_since_step_count == WINDOW_STEP) {
+    if (samples_since_step_count == WINDOW_STEP)
+    {
         samples_since_step_count = 0;
 
         // Check if there is significant movement (difference between max and min)
-        if (window_step_max - window_step_min > MOVEMENT_DETECTION_THRESHOLD) {
+        if (window_step_max - window_step_min > MOVEMENT_DETECTION_THRESHOLD)
+        {
             // Prepare the data for FFT
-            complex_double fft_input[WINDOW_LEN];
-            for (int i = 0; i < WINDOW_LEN; i++) {
-                fft_input[i].real = (double)signal_buffer[i];
+            for (int i = 0; i < WINDOW_LEN; i++)
+            {
+                int buffer_i = buffer_index_plus(signal_buffer_next_i, i, WINDOW_LEN);
+                fft_input[i].real = (double)signal_buffer[buffer_i];
                 fft_input[i].imag = 0.0;
             }
 
@@ -154,12 +182,15 @@ steps_t fft_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t
             FFT(fft_input, WINDOW_LEN, 1.0);
 
             // Find the dominant frequency
-            double max_magnitude = 0.0;
+            double max_fft_magnitude = 0.0;
             int dominant_freq_index = 0;
-            for (int i = 1; i < WINDOW_LEN / 2 + 1; i++) {
-                double magnitude = sqrt(fft_input[i].real * fft_input[i].real + fft_input[i].imag * fft_input[i].imag);
-                if (magnitude > max_magnitude) {
-                    max_magnitude = magnitude;
+
+            for (int i = MIN_FREQ_FFT_I; i < MAX_FREQ_FFT_I; i++)
+            {
+                double fft_magnitude = sqrt(fft_input[i].real * fft_input[i].real + fft_input[i].imag * fft_input[i].imag);
+                if (fft_magnitude > max_fft_magnitude)
+                {
+                    max_fft_magnitude = fft_magnitude;
                     dominant_freq_index = i;
                 }
             }
