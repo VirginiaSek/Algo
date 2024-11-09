@@ -1,0 +1,2 @@
+add_library(panTompkins panTompkins.c)
+target_include_directories(panTompkins PUBLIC include)

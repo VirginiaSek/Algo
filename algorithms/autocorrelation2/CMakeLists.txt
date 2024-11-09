@@ -1,0 +1,2 @@
+add_library(autocorrelation2 autocorrelation2.c)
+target_include_directories(autocorrelation2 PUBLIC include)

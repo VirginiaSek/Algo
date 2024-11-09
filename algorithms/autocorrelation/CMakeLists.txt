@@ -1,0 +1,2 @@
+add_library(autocorrelation autocorrelation_stepcount.c)
+target_include_directories(autocorrelation PUBLIC include)

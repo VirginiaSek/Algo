@@ -1,0 +1,2 @@
+add_library(bangle_simple bangle_simple.c)
+target_include_directories(bangle_simple PUBLIC include)

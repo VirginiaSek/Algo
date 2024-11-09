@@ -1,0 +1,2 @@
+add_library(movement_detection movement_detection.c)
+target_include_directories(movement_detection PUBLIC include)

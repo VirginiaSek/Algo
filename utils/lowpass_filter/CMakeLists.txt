@@ -1,0 +1,2 @@
+add_library(lowpass_filter lowpass_filter.c)
+target_include_directories(lowpass_filter PUBLIC include)

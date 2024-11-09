@@ -6,16 +6,16 @@ Algorithms for step counting and heart rate for the Bangle JS.
 Compile:
 
 ```bash
-make
+cmake --build ./build/ --target all
 ```
 
 Run:
 
 ```bash
-./build/benchmarkSC ../tests/ references.csv results.csv
+./build/stepcounter ../testdata/ ../reference_sc.csv  ../resultssc
 ```
 
-Where `../tests` is the folder where the acceleration csv files are located, `references.csv` is the file with the reference step count and `results.csv` is the filename of the output file. Change accordingly.
+Where `../testdata` is the folder where the acceleration csv files are located, `reference_sc.csv` is the file with the reference step count and `results` is the folder for the output files. Change accordingly.
 
 Acceleration files are expected to he in a flat folder (no subfolders), with the following structure:
 `ms, accx, accy, accz`
