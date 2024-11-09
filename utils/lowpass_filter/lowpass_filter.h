@@ -26,8 +26,6 @@ fixed point precision: 16 bits
 
 #define LPFILTER_TAP_NUM 15
 
-typedef int cazzo;
-
 typedef struct LPFilter
 {
   accel_big_t history[LPFILTER_TAP_NUM];

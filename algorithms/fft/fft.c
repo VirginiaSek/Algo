@@ -18,6 +18,9 @@ static int signal_buffer_next_i = 0;
 static double total_steps = 0;
 static int samples_since_step_count = 0;
 
+// LPF
+// static LPFilter lpf;
+
 // For motion detection
 static accel_big_t window_step_min, window_step_max;
 #define MOVEMENT_DETECTION_THRESHOLD 1500
@@ -136,30 +139,34 @@ void fft_init()
 
     window_step_min = 66000;
     window_step_max = -66000;
+
+    // LPFilter_init(&lpf);
 }
 
 // Function to count total steps
 steps_t fft_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
     // Calculate the magnitude of the acceleration vector
-    uint16_t magn = sqrt(accx * accx + accy * accy + accz * accz);
+    accel_big_t magn_filtered = sqrt(accx * accx + accy * accy + accz * accz);
 
-    // TODO: LPF
+    // low pass
+    // LPFilter_put(&lpf, magn);
+    // accel_big_t magn_filtered = LPFilter_get(&lpf);
 
     // Add the magnitude to the circular buffer
-    signal_buffer[signal_buffer_next_i] = magn;
+    signal_buffer[signal_buffer_next_i] = magn_filtered;
     signal_buffer_next_i = (signal_buffer_next_i + 1) % WINDOW_LEN;
 
     samples_since_step_count++;
 
     // Update the window's min and max values
-    if (magn < window_step_min)
+    if (magn_filtered < window_step_min)
     {
-        window_step_min = magn;
+        window_step_min = magn_filtered;
     }
-    if (magn > window_step_max)
+    if (magn_filtered > window_step_max)
     {
-        window_step_max = magn;
+        window_step_max = magn_filtered;
     }
 
     // After WINDOW_STEP samples, check if it's time to perform the analysis
