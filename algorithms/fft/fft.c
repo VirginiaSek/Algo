@@ -19,7 +19,7 @@ static double total_steps = 0;
 static int samples_since_step_count = 0;
 
 // LPF
-// #define USE_LPF
+#define USE_LPF
 #ifdef USE_LPF
 static LPFilter lpf;
 #endif
@@ -170,13 +170,13 @@ steps_t fft_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t
     samples_since_step_count++;
 
     // Update the window's min and max values
-    if (magn_filtered < window_step_min)
+    if (magn < window_step_min)
     {
-        window_step_min = magn_filtered;
+        window_step_min = magn;
     }
-    if (magn_filtered > window_step_max)
+    if (magn > window_step_max)
     {
-        window_step_max = magn_filtered;
+        window_step_max = magn;
     }
 
     // After WINDOW_STEP samples, check if it's time to perform the analysis

@@ -27,6 +27,12 @@ static accel_big_t window_step_min, window_step_max;
 // total steps counter, use decimals because fractions are added at each WINDOW_STEP
 static double total_steps = 0;
 
+// LPF
+#define USE_LPF
+#ifdef USE_LPF
+static LPFilter lpf;
+#endif
+
 // uncomment to debug for ONE FILE ONLY!
 // #define DUMP_FILE
 
@@ -57,6 +63,10 @@ void autocorrelation_2_init()
 
     window_step_min = 66000;
     window_step_max = -66000;
+
+#ifdef USE_LPF
+    LPFilter_init(&lpf);
+#endif
 }
 
 steps_t autocorrelation2_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
@@ -64,10 +74,17 @@ steps_t autocorrelation2_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t 
     // compute magnitude
     uint16_t magn = sqrt(accx * accx + accy * accy + accz * accz);
 
-    // TODO: LPF
+#ifdef USE_LPF
+    // low pass
+    LPFilter_put(&lpf, magn);
+    accel_big_t magn_filtered = LPFilter_get(&lpf);
+#else
+    // skip LPF filtering
+    accel_big_t magn_filtered = magn;
+#endif
 
     // add to buffer
-    signal_buffer[signal_buffer_next_i] = magn;
+    signal_buffer[signal_buffer_next_i] = magn_filtered;
     signal_buffer_next_i = (signal_buffer_next_i + 1) % WINDOW_LEN;
 
     samples_since_step_count++;
