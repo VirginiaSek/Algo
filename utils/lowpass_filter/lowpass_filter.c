@@ -55,12 +55,12 @@ void LPFilter_put(LPFilter *f, accel_big_t input)
 
 accel_big_t LPFilter_get(LPFilter *f)
 {
-    accel_big_t acc = 0;
+    long long acc = 0;
     int index = f->last_index, i;
     for (i = 0; i < LPFILTER_TAP_NUM; ++i)
     {
         index = index != 0 ? index - 1 : LPFILTER_TAP_NUM - 1;
-        acc += f->history[index] * filter_taps[i];
+        acc += (long long)f->history[index] * filter_taps[i];
     };
     return acc >> 16;
 }
