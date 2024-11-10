@@ -19,7 +19,10 @@ static double total_steps = 0;
 static int samples_since_step_count = 0;
 
 // LPF
-// static LPFilter lpf;
+// #define USE_LPF
+#ifdef USE_LPF
+static LPFilter lpf;
+#endif
 
 // For motion detection
 static accel_big_t window_step_min, window_step_max;
@@ -140,18 +143,25 @@ void fft_init()
     window_step_min = 66000;
     window_step_max = -66000;
 
-    // LPFilter_init(&lpf);
+#ifdef USE_LPF
+    LPFilter_init(&lpf);
+#endif
 }
 
 // Function to count total steps
 steps_t fft_stepcount_totalsteps(time_delta_ms_t delta_ms, accel_t accx, accel_t accy, accel_t accz)
 {
     // Calculate the magnitude of the acceleration vector
-    accel_big_t magn_filtered = sqrt(accx * accx + accy * accy + accz * accz);
+    accel_big_t magn = sqrt(accx * accx + accy * accy + accz * accz);
 
+#ifdef USE_LPF
     // low pass
-    // LPFilter_put(&lpf, magn);
-    // accel_big_t magn_filtered = LPFilter_get(&lpf);
+    LPFilter_put(&lpf, magn);
+    accel_big_t magn_filtered = LPFilter_get(&lpf);
+#else
+    // skip LPF filtering
+    accel_big_t magn_filtered = magn;
+#endif
 
     // Add the magnitude to the circular buffer
     signal_buffer[signal_buffer_next_i] = magn_filtered;
