@@ -194,6 +194,7 @@ int main(int argc, char *argv[])
 
         // search for reference scanning the reference cvs file
         // printf("Searching for %s in reference CSV\n", entry->d_name);
+        // SUBJECT,FILENAME,BANGLESTEPCOUNT,REFERENCEIMU,ACTIVITY
         while (fgets(ref_line, sizeof(ref_line), ref_fp) != NULL)
         {
             // Remove trailing newline
@@ -207,11 +208,13 @@ int main(int argc, char *argv[])
                 int bangle_ref = 0;
                 int IMU_ref = 0;
                 char activity[256];
-                if (sscanf(ref_line, "%d;%[a-zA-Z0-9_];%d;%d;%s", &subj_number, ref_filename, &bangle_ref, &IMU_ref, activity) == 5)
+                if (sscanf(ref_line, "%d,%[a-zA-Z0-9_.],%d,%d,%s", &subj_number, ref_filename, &bangle_ref, &IMU_ref, activity) == 5)
                 {
-                    strcat(ref_filename, ".csv");
-                    // printf("%d %s %s\n", subj_number, ref_filename, entry->d_name);
-                    if (strcasecmp(ref_filename, entry->d_name) == 0)
+                    char ss1[30];
+                    char ss2[30];
+                    strncpy(ss1, ref_filename, 25);
+                    strncpy(ss2, entry->d_name, 25);
+                    if (strcasecmp(ss1, ss2) == 0)
                     {
                         ref_imu = IMU_ref;
                         // printf("File found in ref %s \n", entry->d_name);
