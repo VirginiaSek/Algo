@@ -12,7 +12,9 @@
 #include "dummyStepCounter.h"
 
 static long long dummy_time_passed = 0;
-static const float steps_per_sec = 2;
+// from : https://bjsm.bmj.com/content/52/12/776
+
+static const float steps_per_sec = 1.5;
 
 static accel_big_t dummy_mov_detect_buffdata[DETECTION_BUFFER_LEN];
 static Buffer dummy_mov_detect_buffer = {
