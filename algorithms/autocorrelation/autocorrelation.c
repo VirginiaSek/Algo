@@ -27,7 +27,7 @@ static Buffer autocor_mov_detect_buffer = {
     .data = autocor_mov_detect_buffdata};
 static long movement_samples = 0;
 
-#define NUM_AUTOCORR_LAGS 16      // number of lags to calculate for autocorrelation. At a minimum step rate of §1 step /s -> 1000 / sampling_period(ms) = sampling frequency -> add a few more -> 16 at 12.5 Hz
+#define NUM_AUTOCORR_LAGS 16      // number of lags to calculate for autocorrelation. At a minimum step rate of 1 step /s -> 1000 / sampling_period(ms) = sampling frequency -> add a few more -> 16 at 12.5 Hz
 #define FIRST_AUTOCORR_PEAK_LAG 4 // corresponds to the first feasible autocorrelation lag -> at a max step rate of 3 steps /s (running) -> 333ms / sampling_period(ms) = 4 at 12.5 Hz
 
 #define DERIV_FILT_LEN 7                    // length of derivative filter
